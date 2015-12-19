@@ -1,6 +1,23 @@
+var ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
+
 var SuperTask = function ST_INIT() {
 	this.queue = [];
 	this.map = new Map();
+};
+
+SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, remote, sandboxed) {
+    return {
+        func: func,
+        local: (type === ST_LOCAL_TYPE),
+        shared: (type === ST_SHARED_TYPE),
+        sandboxed: ((!!sandboxed) || (type === ST_FOREIGN_TYPE)),
+        isRemote: (!!remote),
+        lastStarted: [],
+        lastFinished: [],
+        lastDiff: 0,
+        averageExecutionTime: -1,
+        executionRounds: 0
+    };
 };
 
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
@@ -8,16 +25,7 @@ SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
         if(typeof callback === 'function') callback(new Error('Enable to create new task. A Task with the given name already exists.'));
         return;
     }
-    var task = {
-        func: func,
-        local: true,
-        isRemote: false,
-        lastStarted: [],
-        lastFinished: [],
-        lastDiff: 0,
-        averageExecutionTime: -1,
-        executionRounds: 0
-    };
+    var task = this._createTask(func, ST_LOCAL_TYPE);
     // Add Task to Map
 	this.map.set(name, task);
     
@@ -62,5 +70,11 @@ SuperTask.prototype.remove = function ST_REMOVE(name, callback) {
 SuperTask.prototype.has = function ST_HAS(name, callback) {
     if(typeof callback === 'function') callback(null, (!!this.map.has(name)));
 };
+
+/// EXTEND TYPES
+SuperTask.ST_LOCAL_TYPE = ST_LOCAL_TYPE;
+SuperTask.ST_SHARED_TYPE = ST_SHARED_TYPE;
+SuperTask.ST_FOREIGN_TYPE = ST_FOREIGN_TYPE;
+///
 
 module.exports = SuperTask;
