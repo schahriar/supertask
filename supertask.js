@@ -46,7 +46,9 @@ SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback)
     }
     // VM requires a String source to compile
     // If given source is a function convert it to source (context is lost)
-    if (typeof source === 'function') source = source.toString();
+    if (typeof source === 'function') {
+        source = 'module.exports = ' + source.toString();
+    }
 
     var task = this._createTask(source, ST_FOREIGN_TYPE, true);
     // Add Task to Map

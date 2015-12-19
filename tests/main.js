@@ -106,4 +106,16 @@ describe('Test Suite', function(){
             }}});
         });
     });
+    it('should allow foreign tasks as JS functions', function(done) {
+        TaskManager.addForeign('foreignFunc', function(callback) {
+            console.log('hey');
+            callback();
+        }, function(error, task) {
+            if(error) throw error;
+            TaskManager.do('foreignFunc', { console: { log: function(m){
+                expect(m).to.equal("hey");
+                done();
+            }}});
+        });
+    })
 });
