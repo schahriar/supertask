@@ -1,0 +1,29 @@
+{
+  "name": "supertask",
+  "version": "1.0.0",
+  "description": "A task & queue environment ideal for distributed computing and execution",
+  "main": "supertask.js",
+  "scripts": {
+    "test": "mocha ./tests/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/schahriar/supertask.git"
+  },
+  "keywords": [
+    "supertask",
+    "queue",
+    "task",
+    "distributed"
+  ],
+  "author": "Schahriar SaffarShargh <info@schahriar.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/schahriar/supertask/issues"
+  },
+  "homepage": "https://github.com/schahriar/supertask#readme",
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "mocha": "^2.3.4"
+  }
+}
