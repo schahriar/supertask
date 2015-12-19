@@ -7,6 +7,11 @@ var TaskManager;
 var exec = 0;
 var averager = { prev: 0, current: 0 };
 
+var ftasks = {
+    t1: "var exec = 0; module.exports = function(a1, callback){ callback(null, a1, ++exec); };",
+    t2: "module.exports = function(callback) { callback(); console.log('hey'); };"
+};
+
 describe('Test Suite', function(){
     it('should create a new instance', function() {
         TaskManager = new SuperTask(); 
@@ -64,6 +69,41 @@ describe('Test Suite', function(){
                 expect(has).to.be.equal(false);
                 done();
             });
+        });
+    });
+    it('should add a foreign task', function(done) {
+        TaskManager.addForeign('foreign', ftasks.t1, function(error, task) {
+            if(error) throw error;
+            expect(task).to.have.property('sandboxed');
+            done();
+        });
+    });
+    it('should run a foreign task', function(done) {
+        TaskManager.do('foreign', {}, ['HelloWorld'], function(error, a1, count) {
+            if(error) throw error;
+            expect(a1).to.equal('HelloWorld');
+            expect(count).to.equal(1);
+  
+            done();
+        });
+    });
+    it('should compile and cache a foreign task', function(done) {
+        TaskManager.do('foreign', {}, ['HelloWorld'], function(error, a1, count) {
+            if(error) throw error;
+            expect(a1).to.equal('HelloWorld');
+            expect(count).to.equal(2);
+            expect(this.isCompiled).to.equal(true);
+  
+            done();
+        });
+    });
+    it('should run a foreign task with unique context', function(done) {
+        TaskManager.addForeign('foreignUnique', ftasks.t2, function(error, task) {
+            if(error) throw error;
+            TaskManager.do('foreignUnique', { console: { log: function(m){
+                expect(m).to.equal("hey");
+                done();
+            }}});
         });
     });
 });
