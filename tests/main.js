@@ -42,6 +42,8 @@ describe('Test Suite', function(){
             expect(exec).to.be.gte(1);
             averager.current = (averager.prev + this.lastDiff)/2;
             expect(this.averageExecutionTime).to.be.equal(averager.current);
+            // Sanity Check
+            expect(this.averageExecutionTime).to.be.lt(1000000000);
             done();
         });
     });

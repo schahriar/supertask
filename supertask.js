@@ -50,9 +50,12 @@ SuperTask.prototype._next = function ST__QUEUE_NEXT() {
 SuperTask.prototype._pause = function ST__QUEUE_PAUSE() { this._paused = true; };
 SuperTask.prototype._unpause = function ST__QUEUE_UNPAUSE() { this._paused = false; this._next(); };
 
-SuperTask.prototype._add = function ST__QUEUE_ADD(name, func, context, args) {
+SuperTask.prototype._add = function ST__QUEUE_ADD(name, func, context, args, preTracker) {
     // Push Function to Queue
     this.queue.push(function ST_QUEUE_EXECUTOR() {
+        // Call PreTracker
+        preTracker();
+        // Call Function
         func.apply(context, args);
     });
     // Unpause Queue
@@ -95,7 +98,10 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         return;
     }
     var task = this.map.get(name);
-    task.lastStarted = process.hrtime();
+    // Function executed on queue execution
+    var preTracker = function ST_DO_PRETRACKER() {
+        task.lastStarted = process.hrtime();
+    };
     // Sanitize args
     args = (Array.isArray(args)) ? args : [];
     // Push Callback & Tracker to args;
@@ -144,7 +150,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
                 // Set isCompiled property
                 task.isCompiled = true;
                 // Push to Queue
-                this._add(name, task.func, context, args);
+                this._add(name, task.func, context, args, preTracker);
             } else {
                 // Call Callback with an error if module.exports is not set to a function
                 if (typeof callback === 'function') callback(new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function."));
@@ -152,7 +158,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         }
     } else {
         // Push to Queue
-        this._add(name, task.func, context, args);
+        this._add(name, task.func, context, args, preTracker);
     }
 };
 
