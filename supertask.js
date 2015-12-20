@@ -7,6 +7,8 @@ var ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
 
 var SuperTask = function ST_INIT() {
     this.queue = [];
+    this._batch = [];
+    this._paused = true;
     this.map = new Map();
 };
 
@@ -25,6 +27,36 @@ SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, isModule,
         averageExecutionTime: -1,
         executionRounds: 0
     };
+};
+
+SuperTask.prototype._next = function ST__QUEUE_NEXT() {
+    if (this._paused) return false;
+    var _this = this, i = 0;
+    for (i = 0; i < this.queue.length; i++) {
+        this._batch.push(this.queue.shift());
+    }
+    /* Feature: Detect Stack Like Overflows to prevent unwanted recursion */
+    // Non-blocking execution that allows for automatic batching
+    setImmediate(function(){
+        // Execute all in parallel
+        for (i = 0; i < _this._batch.length; i++) {
+            (_this._batch.shift())();
+        }
+        // Set Paused
+        _this._pause();
+    });
+};
+
+SuperTask.prototype._pause = function ST__QUEUE_PAUSE() { this._paused = true; };
+SuperTask.prototype._unpause = function ST__QUEUE_UNPAUSE() { this._paused = false; this._next(); };
+
+SuperTask.prototype._add = function ST__QUEUE_ADD(name, func, context, args) {
+    // Push Function to Queue
+    this.queue.push(function ST_QUEUE_EXECUTOR() {
+        func.apply(context, args);
+    });
+    // Unpause Queue
+    this._unpause();
 };
 
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
@@ -109,15 +141,18 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
             if (typeof context.module.exports === 'function') {
                 // Cache and Call the function
                 task.func = context.module.exports;
+                // Set isCompiled property
                 task.isCompiled = true;
-                task.func.apply(context || {}, args);
+                // Push to Queue
+                this._add(name, task.func, context, args);
             } else {
                 // Call Callback with an error if module.exports is not set to a function
                 if (typeof callback === 'function') callback(new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function."));
             }
         }
     } else {
-        task.func.apply(context || {}, args);
+        // Push to Queue
+        this._add(name, task.func, context, args);
     }
 };
 
