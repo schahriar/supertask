@@ -1,14 +1,18 @@
 /// Required Core Modules
 var vm = require('vm');
 ///
+/// Modules
+var async = require('async');
+///
 /// Predefined Types
 var ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
 ///
 
 var SuperTask = function ST_INIT() {
-    this.queue = [];
+    this.queue = async.queue(this._next, 50);
     this._batch = [];
     this._paused = true;
+    this._busy = false;
     this.map = new Map();
 };
 
@@ -29,37 +33,32 @@ SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, isModule,
     };
 };
 
-SuperTask.prototype._next = function ST__QUEUE_NEXT() {
-    if (this._paused) return false;
-    var _this = this, i = 0;
-    for (i = 0; i < this.queue.length; i++) {
-        this._batch.push(this.queue.shift());
-    }
-    /* Feature: Detect Stack Like Overflows to prevent unwanted recursion */
-    // Non-blocking execution that allows for automatic batching
-    setImmediate(function(){
-        // Execute all in parallel
-        for (i = 0; i < _this._batch.length; i++) {
-            (_this._batch.shift())();
-        }
-        // Set Paused
-        _this._pause();
-    });
+SuperTask.prototype._next = function ST__QUEUE_NEXT(task, callback) {
+    /* At this point the source is fully compiled
+    /* to a function or a function is resupplied
+    /* from cache to be executed. Here we transfer
+    /* the given function (task.func) to the queue
+    /* after attaching the pre tracker */
+    
+    // Call preTracker
+    task.pre();
+    // Push Callback to args
+    task.args.push(callback);
+    // Call Function with context & args
+    task.func.apply(task.context, task.args);
 };
 
-SuperTask.prototype._pause = function ST__QUEUE_PAUSE() { this._paused = true; };
-SuperTask.prototype._unpause = function ST__QUEUE_UNPAUSE() { this._paused = false; this._next(); };
-
-SuperTask.prototype._add = function ST__QUEUE_ADD(name, func, context, args, preTracker) {
-    // Push Function to Queue
-    this.queue.push(function ST_QUEUE_EXECUTOR() {
-        // Call PreTracker
-        preTracker();
-        // Call Function
-        func.apply(context, args);
-    });
-    // Unpause Queue
-    this._unpause();
+SuperTask.prototype._add = function ST__QUEUE_ADD(name, func, context, args, preTracker, postTracker) {
+    // Push Queue Object & Attach postTracker
+    this.queue.push({
+        name: name,
+        pre: preTracker,
+        func: func,
+        context: context,
+        args: args
+    }, postTracker);
+    // Resume Queue
+    this.queue.resume();
 };
 
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
@@ -102,10 +101,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
     var preTracker = function ST_DO_PRETRACKER() {
         task.lastStarted = process.hrtime();
     };
-    // Sanitize args
-    args = (Array.isArray(args)) ? args : [];
-    // Push Callback & Tracker to args;
-    args.push(function ST_DO_TRACKER(error) {
+    var postTracker = function ST_DO_POSTTRACKER(error) {
         // Calculate High Resolution time it took to run the function
         task.lastFinished = process.hrtime(task.lastStarted);
         // Calculate Time Difference
@@ -120,7 +116,9 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         task.executionRounds++;
         // Call Callback function if provided
         if (typeof callback === 'function') callback.apply(task, arguments);
-    });
+    };
+    // Sanitize args
+    args = (Array.isArray(args)) ? args : [];
 
     if (typeof task.func !== 'function') {
         // Check if script is not compiled
@@ -150,7 +148,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
                 // Set isCompiled property
                 task.isCompiled = true;
                 // Push to Queue
-                this._add(name, task.func, context, args, preTracker);
+                this._add(name, task.func, context, args, preTracker, postTracker);
             } else {
                 // Call Callback with an error if module.exports is not set to a function
                 if (typeof callback === 'function') callback(new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function."));
@@ -158,7 +156,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         }
     } else {
         // Push to Queue
-        this._add(name, task.func, context, args, preTracker);
+        this._add(name, task.func, context, args, preTracker, postTracker);
     }
 };
 

@@ -8,13 +8,13 @@ var exec = 0;
 var averager = { prev: 0, current: 0 };
 
 var ftasks = {
-    t1: "var exec = 0; module.exports = function(a1, callback){ callback(null, a1, ++exec); };",
+    t1: "var exec = 0; module.exports = function(a1, callback){ setTimeout(function(){callback(null, a1, ++exec);}, 10) };",
     t2: "module.exports = function(callback) { callback(); console.log('hey'); };"
 };
 
 describe('Test Suite', function(){
     it('should create a new instance', function() {
-        TaskManager = new SuperTask(); 
+        TaskManager = new SuperTask();
     });
     it('should add a local task', function(done) {
         TaskManager.addLocal('test', function(callback) {
@@ -81,7 +81,7 @@ describe('Test Suite', function(){
         });
     });
     it('should run a foreign task', function(done) {
-        TaskManager.do('foreign', {}, ['HelloWorld'], function(error, a1, count) {
+        TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld'], function(error, a1, count) {
             if(error) throw error;
             expect(a1).to.equal('HelloWorld');
             expect(count).to.equal(1);
@@ -90,7 +90,7 @@ describe('Test Suite', function(){
         });
     });
     it('should compile and cache a foreign task', function(done) {
-        TaskManager.do('foreign', {}, ['HelloWorld'], function(error, a1, count) {
+        TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld'], function(error, a1, count) {
             if(error) throw error;
             expect(a1).to.equal('HelloWorld');
             expect(count).to.equal(2);
@@ -120,23 +120,41 @@ describe('Test Suite', function(){
         });
     });
     it('should queue tasks', function() {
-        TaskManager.do('foreign', {}, ['HelloWorld']);
-        expect(TaskManager._batch.length).to.be.gte(1);
+        TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld']);
+        expect(TaskManager.queue.length()).to.be.gte(1);
     });
     it('should queue tasks in parallel', function() {
         // Queue 5 times
         var i = 0;
         for(i=0; i<5; i++) {
-            TaskManager.do('foreign', {}, ['HelloWorld']);
+            TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld']);
         }
-        expect(TaskManager._batch.length).to.be.gte(5);
+        expect(TaskManager.queue.length()).to.be.gte(5);
     });
-    it('should handle large parallel tasks', function() {
+    it('should handle large parallel tasks', function(done) {
+        this.timeout(10000);
+        // Set max parallel to 5000
+        TaskManager.queue.concurrency = 5000;
         // Queue 5000 times
         var i = 0;
         for(i=0; i<5000; i++) {
-            TaskManager.do('foreign', {}, ['HelloWorld']);
+            TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld']);
         }
-        expect(TaskManager._batch.length).to.be.gte(5000);
+        expect(TaskManager.queue.length()).to.be.gte(5000);
+        TaskManager.queue.drain = done;
+    });
+    it('should respect maximum parallel execution limit', function(done) {
+        TaskManager.queue.concurrency = 10;
+        var saturated = false;
+        TaskManager.queue.saturated = function(){
+            saturated = true;
+        };
+        // Queue 30 times
+        var i = 0;
+        for(i=0; i<30; i++) {
+            TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld']);
+        }
+        expect(saturated).to.be.equal(true);
+        TaskManager.queue.drain = done;
     });
 });
