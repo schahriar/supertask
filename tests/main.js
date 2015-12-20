@@ -93,7 +93,6 @@ describe('Test Suite', function(){
             expect(a1).to.equal('HelloWorld');
             expect(count).to.equal(2);
             expect(this.isCompiled).to.equal(true);
-  
             done();
         });
     });
@@ -117,5 +116,25 @@ describe('Test Suite', function(){
                 done();
             }}});
         });
-    })
+    });
+    it('should queue tasks', function() {
+        TaskManager.do('foreign', {}, ['HelloWorld']);
+        expect(TaskManager._batch.length).to.be.gte(1);
+    });
+    it('should queue tasks in parallel', function() {
+        // Queue 5 times
+        var i = 0;
+        for(i=0; i<5; i++) {
+            TaskManager.do('foreign', {}, ['HelloWorld']);
+        }
+        expect(TaskManager._batch.length).to.be.gte(5);
+    });
+    it('should handle large parallel tasks', function() {
+        // Queue 5000 times
+        var i = 0;
+        for(i=0; i<5000; i++) {
+            TaskManager.do('foreign', {}, ['HelloWorld']);
+        }
+        expect(TaskManager._batch.length).to.be.gte(5000);
+    });
 });
