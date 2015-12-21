@@ -123,7 +123,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback, permissio
     if (task.defaultContext && (Object.keys(task.defaultContext).length !== 0)) defaultsDeep(context, task.defaultContext);
     // Combine Permissions Context (SLOWS DOWN EXECUTION)
     if (task.access !== ST_NONE) {
-        context = this._extendContextFromPermissions(context, task.access);
+        context = this._extendContextFromPermissions(context, permissions || task.access);
     }
     // Function executed on queue execution
     var preTracker = function ST_DO_PRETRACKER() {
