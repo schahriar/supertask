@@ -6,7 +6,10 @@ var async = require('async');
 var defaultsDeep = require('lodash.defaultsdeep');
 ///
 /// Predefined Types
+// TYPES
 var ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
+// PERMISSIONS
+var ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 ///
 
 var SuperTask = function ST_INIT() {
@@ -17,7 +20,7 @@ var SuperTask = function ST_INIT() {
     this.map = new Map();
 };
 
-SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, context, isModule, remote, sandboxed) {
+SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, access, context, isModule, remote, sandboxed) {
     return {
         func: func,
         local: (type === ST_LOCAL_TYPE),
@@ -31,9 +34,12 @@ SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, context, 
         lastDiff: 0,
         averageExecutionTime: -1,
         executionRounds: 0,
-        defaultContext: context || {}
+        defaultContext: context || {},
+        access: access || ST_NONE
     };
 };
+
+SuperTask.prototype._extendContextFromPermissions = require('./lib/ContextPermissions');
 
 SuperTask.prototype._next = function ST__QUEUE_NEXT(task, callback) {
     /* At this point the source is fully compiled
@@ -73,7 +79,7 @@ SuperTask.prototype._addTask = function ST__ADD_TASK() {
         if (typeof callback === 'function') callback(new Error('Enable to create new task. A Task with the given name already exists.'));
         return;
     }
-    
+
     var task = this._createTask.apply(this, args);
     // Add Task to Map
     this.map.set(name, task);
@@ -85,8 +91,8 @@ SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
     this._addTask(name, func, ST_LOCAL_TYPE, callback);
 };
 
-SuperTask.prototype.addLocalWithContext = function ST_ADD_LOCAL_W_CONTEXT(name, func, context, callback) {
-    this._addTask(name, func, ST_LOCAL_TYPE, context, callback);
+SuperTask.prototype.addLocalWithContext = function ST_ADD_LOCAL_W_CONTEXT(name, func, context, permissions, callback) {
+    this._addTask(name, func, ST_LOCAL_TYPE, permissions, context, callback);
 };
 
 SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback) {
@@ -98,23 +104,27 @@ SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback)
     this._addTask(name, source, ST_FOREIGN_TYPE, callback);
 };
 
-SuperTask.prototype.addForeignWithContext = function ST_ADD_FOREIGN_W_CONTEXT(name, source, context, callback) {
+SuperTask.prototype.addForeignWithContext = function ST_ADD_FOREIGN_W_CONTEXT(name, source, context, permissions, callback) {
     // VM requires a String source to compile
     // If given source is a function convert it to source (context is lost)
     if (typeof source === 'function') {
         source = 'module.exports = ' + source.toString();
     }
-    this._addTask(name, source, ST_FOREIGN_TYPE, context, callback);
+    this._addTask(name, source, ST_FOREIGN_TYPE, permissions, context, callback);
 };
 
-SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
+SuperTask.prototype.do = function ST_DO(name, context, args, callback, permissions) {
     if (!this.map.has(name)) {
         if (typeof callback === 'function') callback(new Error('Task not found!'));
         return;
     }
     var task = this.map.get(name);
     // Combine Contexts
-    defaultsDeep(context, task.defaultContext);
+    if (task.defaultContext && (Object.keys(task.defaultContext).length !== 0)) defaultsDeep(context, task.defaultContext);
+    // Combine Permissions Context (SLOWS DOWN EXECUTION)
+    if (task.access !== ST_NONE) {
+        context = this._extendContextFromPermissions(context, task.access);
+    }
     // Function executed on queue execution
     var preTracker = function ST_DO_PRETRACKER() {
         task.lastStarted = process.hrtime();
@@ -187,10 +197,15 @@ SuperTask.prototype.has = function ST_HAS(name, callback) {
     if (typeof callback === 'function') callback(null, (!!this.map.has(name)));
 };
 
-/// EXTEND TYPES
+/// EXTEND PREDEFINED VARS
 SuperTask.ST_LOCAL_TYPE = ST_LOCAL_TYPE;
 SuperTask.ST_SHARED_TYPE = ST_SHARED_TYPE;
 SuperTask.ST_FOREIGN_TYPE = ST_FOREIGN_TYPE;
+
+SuperTask.ST_NONE = ST_NONE;
+SuperTask.ST_RESTRICTED = ST_RESTRICTED;
+SuperTask.ST_MINIMAL = ST_MINIMAL;
+SuperTask.ST_UNRESTRICTED = ST_UNRESTRICTED;
 ///
 
 module.exports = SuperTask;
