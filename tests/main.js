@@ -74,14 +74,14 @@ describe('Test Suite', function(){
         });
     });
     it('should add a foreign task', function(done) {
-        TaskManager.addForeign('foreign', ftasks.t1, function(error, task) {
+        TaskManager.addForeignWithContext('foreign', ftasks.t1, { setTimeout: setTimeout }, function(error, task) {
             if(error) throw error;
             expect(task).to.have.property('sandboxed');
             done();
         });
     });
     it('should run a foreign task', function(done) {
-        TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld'], function(error, a1, count) {
+        TaskManager.do('foreign', {}, ['HelloWorld'], function(error, a1, count) {
             if(error) throw error;
             expect(a1).to.equal('HelloWorld');
             expect(count).to.equal(1);
@@ -90,7 +90,7 @@ describe('Test Suite', function(){
         });
     });
     it('should compile and cache a foreign task', function(done) {
-        TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld'], function(error, a1, count) {
+        TaskManager.do('foreign', {}, ['HelloWorld'], function(error, a1, count) {
             if(error) throw error;
             expect(a1).to.equal('HelloWorld');
             expect(count).to.equal(2);
@@ -120,14 +120,14 @@ describe('Test Suite', function(){
         });
     });
     it('should queue tasks', function() {
-        TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld']);
+        TaskManager.do('foreign', {}, ['HelloWorld']);
         expect(TaskManager.queue.length()).to.be.gte(1);
     });
     it('should queue tasks in parallel', function() {
         // Queue 5 times
         var i = 0;
         for(i=0; i<5; i++) {
-            TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld']);
+            TaskManager.do('foreign', {}, ['HelloWorld']);
         }
         expect(TaskManager.queue.length()).to.be.gte(5);
     });
@@ -138,7 +138,7 @@ describe('Test Suite', function(){
         // Queue 5000 times
         var i = 0;
         for(i=0; i<5000; i++) {
-            TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld']);
+            TaskManager.do('foreign', {}, ['HelloWorld']);
         }
         expect(TaskManager.queue.length()).to.be.gte(5000);
         TaskManager.queue.drain = done;
@@ -152,7 +152,7 @@ describe('Test Suite', function(){
         // Queue 30 times
         var i = 0;
         for(i=0; i<30; i++) {
-            TaskManager.do('foreign', { setTimeout: setTimeout }, ['HelloWorld']);
+            TaskManager.do('foreign', {}, ['HelloWorld']);
         }
         expect(saturated).to.be.equal(true);
         TaskManager.queue.drain = done;

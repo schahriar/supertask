@@ -3,6 +3,7 @@ var vm = require('vm');
 ///
 /// Modules
 var async = require('async');
+var defaultsDeep = require('lodash.defaultsdeep');
 ///
 /// Predefined Types
 var ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
@@ -16,7 +17,7 @@ var SuperTask = function ST_INIT() {
     this.map = new Map();
 };
 
-SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, isModule, remote, sandboxed) {
+SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, context, isModule, remote, sandboxed) {
     return {
         func: func,
         local: (type === ST_LOCAL_TYPE),
@@ -29,7 +30,8 @@ SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, isModule,
         lastFinished: [],
         lastDiff: 0,
         averageExecutionTime: -1,
-        executionRounds: 0
+        executionRounds: 0,
+        defaultContext: context || {}
     };
 };
 
@@ -61,34 +63,48 @@ SuperTask.prototype._add = function ST__QUEUE_ADD(name, func, context, args, pre
     this.queue.resume();
 };
 
-SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
+SuperTask.prototype._addTask = function ST__ADD_TASK() {
+    var args = Array.prototype.slice.call(arguments);
+    var name = args.shift();
+    var callback = args.pop();
+    
+    // Make sure Map Key is not taken
     if (this.map.has(name)) {
         if (typeof callback === 'function') callback(new Error('Enable to create new task. A Task with the given name already exists.'));
         return;
     }
-    var task = this._createTask(func, ST_LOCAL_TYPE);
+    
+    var task = this._createTask.apply(this, args);
     // Add Task to Map
     this.map.set(name, task);
 
     if (typeof callback === 'function') callback(null, task);
 };
 
+SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
+    this._addTask(name, func, ST_LOCAL_TYPE, callback);
+};
+
+SuperTask.prototype.addLocalWithContext = function ST_ADD_LOCAL_W_CONTEXT(name, func, context, callback) {
+    this._addTask(name, func, ST_LOCAL_TYPE, context, callback);
+};
+
 SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback) {
-    if (this.map.has(name)) {
-        if (typeof callback === 'function') callback(new Error('Enable to create new task. A Task with the given name already exists.'));
-        return;
-    }
     // VM requires a String source to compile
     // If given source is a function convert it to source (context is lost)
     if (typeof source === 'function') {
         source = 'module.exports = ' + source.toString();
     }
+    this._addTask(name, source, ST_FOREIGN_TYPE, callback);
+};
 
-    var task = this._createTask(source, ST_FOREIGN_TYPE, true);
-    // Add Task to Map
-    this.map.set(name, task);
-
-    if (typeof callback === 'function') callback(null, task);
+SuperTask.prototype.addForeignWithContext = function ST_ADD_FOREIGN_W_CONTEXT(name, source, context, callback) {
+    // VM requires a String source to compile
+    // If given source is a function convert it to source (context is lost)
+    if (typeof source === 'function') {
+        source = 'module.exports = ' + source.toString();
+    }
+    this._addTask(name, source, ST_FOREIGN_TYPE, context, callback);
 };
 
 SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
@@ -97,6 +113,8 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         return;
     }
     var task = this.map.get(name);
+    // Combine Contexts
+    defaultsDeep(context, task.defaultContext);
     // Function executed on queue execution
     var preTracker = function ST_DO_PRETRACKER() {
         task.lastStarted = process.hrtime();
