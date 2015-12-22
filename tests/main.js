@@ -12,6 +12,8 @@ var ftasks = {
     t2: "module.exports = function(callback) { callback(); console.log('hey'); };"
 };
 
+function noop () { return null; }
+
 describe('Basic Test Suite', function(){
     it('should create a new instance', function() {
         TaskManager = new SuperTask();
@@ -147,7 +149,11 @@ describe('Queue & Cargo Suite', function(){
             TaskManager.do('foreign', {}, ['HelloWorld']);
         }
         expect(TaskManager.cargo.length()).to.be.gte(5000);
-        TaskManager.cargo.drain = done;
+        TaskManager.cargo.drain = function(){
+            done();
+            // Reset
+            TaskManager.cargo.drain = noop;
+        };
     });
     it('should respect maximum parallel execution limit', function(done) {
         TaskManager.cargo.payload = 10;
@@ -161,7 +167,12 @@ describe('Queue & Cargo Suite', function(){
             TaskManager.do('foreign', {}, ['HelloWorld']);
         }
         expect(saturated).to.be.equal(true);
-        TaskManager.cargo.drain = done;
+        var c = 0;
+        TaskManager.cargo.drain = function(){
+            done();
+            // Reset
+            TaskManager.cargo.drain = noop;
+        };
     });
 });
 
