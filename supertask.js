@@ -50,19 +50,30 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
     
     // Go through tasks in parallel
     async.each(tasks, function ST__CARGO_EACH(task, done) {
+        // Cargo Tracker
+        function ST__CARGO_TRACKER(error) {
+            done();
+            task.callback.apply(this, arguments);
+        }
         // Call preTracker
         task.pre();
         // Push Callback to args
-        task.args.push(function ST__CARGO_TRACKER() {
-            done();
-            task.callback.apply(this, arguments);
-        });
+        task.args.push(ST__CARGO_TRACKER);
         // Call Function with context & args
-        task.func.apply(task.context, task.args);
+        if(task.sandboxed) {
+            try {
+                task.func.apply(task.context, task.args);
+            }catch(error) {
+                ST__CARGO_TRACKER(error);
+            }
+        }else{
+            task.func.apply(task.context, task.args);
+        }
+        
     }, callback);
 };
 
-SuperTask.prototype._add = function ST__CARGO_ADD(name, func, context, args, preTracker, postTracker) {
+SuperTask.prototype._newCargo = function ST__CARGO_ADD(name, func, sandboxed, context, args, preTracker, postTracker) {
     // Push Cargo Object & Attach postTracker
     this.cargo.push({
         name: name,
@@ -70,6 +81,7 @@ SuperTask.prototype._add = function ST__CARGO_ADD(name, func, context, args, pre
         func: func,
         context: context,
         args: args,
+        sandboxed: sandboxed,
         callback: postTracker
     });
     // Resume Cargo
@@ -183,7 +195,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback, permissio
                 // Set isCompiled property
                 task.isCompiled = true;
                 // Push to Cargo
-                this._add(name, task.func, context, args, preTracker, postTracker);
+                this._newCargo(name, task.func, task.sandboxed, context, args, preTracker, postTracker);
             } else {
                 // Call Callback with an error if module.exports is not set to a function
                 if (typeof callback === 'function') callback(new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function."));
@@ -191,7 +203,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback, permissio
         }
     } else {
         // Push to Cargo
-        this._add(name, task.func, context, args, preTracker, postTracker);
+        this._newCargo(name, task.func, task.sandboxed, context, args, preTracker, postTracker);
     }
 };
 
