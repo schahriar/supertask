@@ -12,7 +12,7 @@ var ftasks = {
     t2: "module.exports = function(callback) { callback(); console.log('hey'); };"
 };
 
-describe('Test Suite', function(){
+describe('Basic Test Suite', function(){
     it('should create a new instance', function() {
         TaskManager = new SuperTask();
     });
@@ -73,6 +73,9 @@ describe('Test Suite', function(){
             });
         });
     });
+});
+
+describe('Foreign Task Suite', function(){
     it('should add a foreign task', function(done) {
         TaskManager.addForeignWithContext('foreign', ftasks.t1, {}, SuperTask.ST_MINIMAL, function(error, task) {
             if(error) throw error;
@@ -119,6 +122,9 @@ describe('Test Suite', function(){
             }}});
         });
     });
+});
+
+describe('Queue & Cargo Suite', function(){
     it('should queue tasks', function() {
         TaskManager.do('foreign', {}, ['HelloWorld']);
         expect(TaskManager.cargo.length()).to.be.gte(1);
@@ -157,7 +163,10 @@ describe('Test Suite', function(){
         expect(saturated).to.be.equal(true);
         TaskManager.cargo.drain = done;
     });
-    it.skip('should contain the context with respect to permissions', function(done) {
+});
+
+describe.skip('Permission & Context Suite', function(){
+    it('should contain the context with respect to permissions', function(done) {
         
     });
 });
