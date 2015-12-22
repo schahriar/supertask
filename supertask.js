@@ -73,17 +73,9 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
     }, callback);
 };
 
-SuperTask.prototype._newCargo = function ST__CARGO_ADD(name, func, sandboxed, context, args, preTracker, postTracker) {
+SuperTask.prototype._newCargo = function ST__CARGO_ADD(CargoTask) {
     // Push Cargo Object & Attach postTracker
-    this.cargo.push({
-        name: name,
-        pre: preTracker,
-        func: func,
-        context: context,
-        args: args,
-        sandboxed: sandboxed,
-        callback: postTracker
-    });
+    this.cargo.push(CargoTask);
     // Resume Cargo
     this.cargo.resume();
 };
@@ -166,6 +158,20 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
     };
     // Sanitize args
     args = (Array.isArray(args)) ? args : [];
+    
+    // Create a Cargo-able Clone of Task
+    var CargoTask = {};
+    CargoTask.name = name;
+    CargoTask.func = task.func;
+    CargoTask.sandboxed = task.sandboxed;
+    CargoTask.averageExecutionTime = task.averageExecutionTime;
+    CargoTask.executionRounds = task.executionRounds;
+    CargoTask.local = task.local;
+    CargoTask.context = context;
+    CargoTask.args = args;
+    CargoTask.pre = preTracker;
+    CargoTask.callback = postTracker;
+    //
 
     if (typeof task.func !== 'function') {
         // Check if script is not compiled
@@ -194,8 +200,10 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
                 task.func = context.module.exports;
                 // Set isCompiled property
                 task.isCompiled = true;
+                // Set Task Compile Function to CargoTask
+                CargoTask.func = task.func;
                 // Push to Cargo
-                this._newCargo(name, task.func, task.sandboxed, context, args, preTracker, postTracker);
+                this._newCargo(CargoTask);
             } else {
                 // Call Callback with an error if module.exports is not set to a function
                 if (typeof callback === 'function') callback(new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function."));
@@ -203,7 +211,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         }
     } else {
         // Push to Cargo
-        this._newCargo(name, task.func, task.sandboxed, context, args, preTracker, postTracker);
+        this._newCargo(CargoTask);
     }
 };
 
