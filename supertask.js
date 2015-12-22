@@ -13,7 +13,7 @@ var ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 ///
 
 var SuperTask = function ST_INIT() {
-    this.queue = async.queue(this._next, 50);
+    this.cargo = async.cargo(this._next, 50);
     this._batch = [];
     this._paused = true;
     this._busy = false;
@@ -41,32 +41,39 @@ SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, access, c
 
 SuperTask.prototype._extendContextFromPermissions = require('./lib/ContextPermissions');
 
-SuperTask.prototype._next = function ST__QUEUE_NEXT(task, callback) {
+SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
     /* At this point the source is fully compiled
     /* to a function or a function is resupplied
     /* from cache to be executed. Here we transfer
-    /* the given function (task.func) to the queue
+    /* the given function (task.func) to the cargo
     /* after attaching the pre tracker */
     
-    // Call preTracker
-    task.pre();
-    // Push Callback to args
-    task.args.push(callback);
-    // Call Function with context & args
-    task.func.apply(task.context, task.args);
+    // Go through tasks in parallel
+    async.each(tasks, function ST__CARGO_EACH(task, done) {
+        // Call preTracker
+        task.pre();
+        // Push Callback to args
+        task.args.push(function ST__CARGO_TRACKER() {
+            done();
+            task.callback.apply(this, arguments);
+        });
+        // Call Function with context & args
+        task.func.apply(task.context, task.args);
+    }, callback);
 };
 
-SuperTask.prototype._add = function ST__QUEUE_ADD(name, func, context, args, preTracker, postTracker) {
-    // Push Queue Object & Attach postTracker
-    this.queue.push({
+SuperTask.prototype._add = function ST__CARGO_ADD(name, func, context, args, preTracker, postTracker) {
+    // Push Cargo Object & Attach postTracker
+    this.cargo.push({
         name: name,
         pre: preTracker,
         func: func,
         context: context,
-        args: args
-    }, postTracker);
-    // Resume Queue
-    this.queue.resume();
+        args: args,
+        callback: postTracker
+    });
+    // Resume Cargo
+    this.cargo.resume();
 };
 
 SuperTask.prototype._addTask = function ST__ADD_TASK() {
@@ -125,7 +132,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback, permissio
     if (task.access !== ST_NONE) {
         context = this._extendContextFromPermissions(context, permissions || task.access);
     }
-    // Function executed on queue execution
+    // Function executed on cargo execution
     var preTracker = function ST_DO_PRETRACKER() {
         task.lastStarted = process.hrtime();
     };
@@ -175,7 +182,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback, permissio
                 task.func = context.module.exports;
                 // Set isCompiled property
                 task.isCompiled = true;
-                // Push to Queue
+                // Push to Cargo
                 this._add(name, task.func, context, args, preTracker, postTracker);
             } else {
                 // Call Callback with an error if module.exports is not set to a function
@@ -183,7 +190,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback, permissio
             }
         }
     } else {
-        // Push to Queue
+        // Push to Cargo
         this._add(name, task.func, context, args, preTracker, postTracker);
     }
 };

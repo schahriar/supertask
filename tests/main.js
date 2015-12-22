@@ -74,7 +74,7 @@ describe('Test Suite', function(){
         });
     });
     it('should add a foreign task', function(done) {
-        TaskManager.addForeignWithContext('foreign', ftasks.t1, { setTimeout: setTimeout }, function(error, task) {
+        TaskManager.addForeignWithContext('foreign', ftasks.t1, {}, SuperTask.ST_MINIMAL, function(error, task) {
             if(error) throw error;
             expect(task).to.have.property('sandboxed');
             done();
@@ -121,7 +121,7 @@ describe('Test Suite', function(){
     });
     it('should queue tasks', function() {
         TaskManager.do('foreign', {}, ['HelloWorld']);
-        expect(TaskManager.queue.length()).to.be.gte(1);
+        expect(TaskManager.cargo.length()).to.be.gte(1);
     });
     it('should queue tasks in parallel', function() {
         // Queue 5 times
@@ -129,24 +129,24 @@ describe('Test Suite', function(){
         for(i=0; i<5; i++) {
             TaskManager.do('foreign', {}, ['HelloWorld']);
         }
-        expect(TaskManager.queue.length()).to.be.gte(5);
+        expect(TaskManager.cargo.length()).to.be.gte(5);
     });
     it('should handle large parallel tasks', function(done) {
         this.timeout(10000);
         // Set max parallel to 5000
-        TaskManager.queue.concurrency = 5000;
+        TaskManager.cargo.payload = 5000;
         // Queue 5000 times
         var i = 0;
         for(i=0; i<5000; i++) {
             TaskManager.do('foreign', {}, ['HelloWorld']);
         }
-        expect(TaskManager.queue.length()).to.be.gte(5000);
-        TaskManager.queue.drain = done;
+        expect(TaskManager.cargo.length()).to.be.gte(5000);
+        TaskManager.cargo.drain = done;
     });
     it('should respect maximum parallel execution limit', function(done) {
-        TaskManager.queue.concurrency = 10;
+        TaskManager.cargo.payload = 10;
         var saturated = false;
-        TaskManager.queue.saturated = function(){
+        TaskManager.cargo.saturated = function(){
             saturated = true;
         };
         // Queue 30 times
@@ -155,6 +155,9 @@ describe('Test Suite', function(){
             TaskManager.do('foreign', {}, ['HelloWorld']);
         }
         expect(saturated).to.be.equal(true);
-        TaskManager.queue.drain = done;
+        TaskManager.cargo.drain = done;
+    });
+    it.skip('should contain the context with respect to permissions', function(done) {
+        
     });
 });
