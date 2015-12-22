@@ -9,7 +9,8 @@ var averager = { prev: 0, current: 0 };
 
 var ftasks = {
     t1: "var exec = 0; module.exports = function(a1, callback){ setTimeout(function(){callback(null, a1, ++exec);}, 10) };",
-    t2: "module.exports = function(callback) { callback(); console.log('hey'); };"
+    t2: "module.exports = function(callback) { callback(); console.log('hey'); };",
+    t3: "module.exports = function(callback) { callback(null, process.hrtime()); };"
 };
 
 function noop () { return null; }
@@ -176,8 +177,27 @@ describe('Queue & Cargo Suite', function(){
     });
 });
 
-describe.skip('Permission & Context Suite', function(){
+describe('Permission & Context Suite', function(){
+    /* Add More Tests */
     it('should contain the context with respect to permissions', function(done) {
-        
+        TaskManager.addForeignWithContext('foreignT3', ftasks.t3, {}, SuperTask.ST_UNRESTRICTED, function(error, task) {
+            if(error) throw error;
+            expect(task).to.have.property('sandboxed');
+            TaskManager.do('foreignT3', {}, [], function(error, time) {
+                expect(time).to.be.an('array');
+                expect(time).to.have.length(2);
+                done();
+            });
+        });
+    });
+    it('should restrict the context', function(done) {
+        TaskManager.addForeignWithContext('foreignT3C', ftasks.t3, {}, SuperTask.ST_RESTRICTED, function(error, task) {
+            if(error) throw error;
+            expect(task).to.have.property('sandboxed');
+            TaskManager.do('foreignT3C', {}, [], function(error, time) {
+                expect(error.message).to.have.string('process is not defined');
+                done();
+            });
+        });
     });
 });
