@@ -132,7 +132,7 @@ SuperTask.prototype.addForeignWithContext = function ST_ADD_FOREIGN_W_CONTEXT(na
     this._addTask(name, source, ST_FOREIGN_TYPE, permissions, context, callback);
 };
 
-SuperTask.prototype.do = function ST_DO(name, context, args, callback, permissions) {
+SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
     if (!this.map.has(name)) {
         if (typeof callback === 'function') callback(new Error('Task not found!'));
         return;
@@ -142,7 +142,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback, permissio
     if (task.defaultContext && (Object.keys(task.defaultContext).length !== 0)) defaultsDeep(context, task.defaultContext);
     // Combine Permissions Context (SLOWS DOWN EXECUTION)
     if (task.access !== ST_NONE) {
-        context = this._extendContextFromPermissions(context, permissions || task.access);
+        context = this._extendContextFromPermissions(context, task.access);
     }
     // Function executed on cargo execution
     var preTracker = function ST_DO_PRETRACKER() {
