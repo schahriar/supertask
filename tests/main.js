@@ -242,7 +242,7 @@ describe('Optimizer Test Suite', function() {
         }, {
             name: "e3",
             averageExecutionTime: 2000
-        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_TIME_DSC);
+        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_AET_DSC);
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
@@ -256,7 +256,7 @@ describe('Optimizer Test Suite', function() {
         }, {
             name: "e3",
             averageExecutionTime: 2000
-        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_TIME_DSC | Optimizer.flags.ST_O_SORT_QUICKONLY);
+        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_AET_DSC | Optimizer.flags.ST_O_SORT_QUICKONLY);
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
