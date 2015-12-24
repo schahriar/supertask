@@ -7,6 +7,7 @@ var defaultsDeep = require('lodash.defaultsdeep');
 ///
 /// Internal Modules
 var ContextPermissions = require('./lib/ContextPermissions');
+var Optimizer = require('./lib/Optimizations');
 ///
 /// Predefined Types
 // TYPES
@@ -50,6 +51,9 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
     /* from cache to be executed. Here we transfer
     /* the given function (task.func) to the cargo
     /* after attaching the pre tracker */
+    
+    // Optimize Tasks
+    tasks = Optimizer.optimize(tasks);
     
     // Go through tasks in parallel
     async.each(tasks, function ST__CARGO_EACH(task, done) {
