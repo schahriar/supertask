@@ -1,9 +1,12 @@
 /// Required Core Modules
 var vm = require('vm');
 ///
-/// Modules
+/// External Modules
 var async = require('async');
 var defaultsDeep = require('lodash.defaultsdeep');
+///
+/// Internal Modules
+var ContextPermissions = require('./lib/ContextPermissions');
 ///
 /// Predefined Types
 // TYPES
@@ -39,7 +42,7 @@ SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, access, c
     };
 };
 
-SuperTask.prototype._extendContextFromPermissions = require('./lib/ContextPermissions');
+SuperTask.prototype._extendContextFromPermissions = ContextPermissions;
 
 SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
     /* At this point the source is fully compiled
