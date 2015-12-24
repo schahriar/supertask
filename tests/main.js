@@ -77,6 +77,10 @@ describe('Basic Test Suite', function(){
             });
         });
     });
+    it('should contain optimization flags', function (){
+        expect(SuperTask).to.have.property('ST_O0');
+        expect(SuperTask).to.have.property('ST_O_PRIORITY_ASC');
+    });
 });
 
 describe('Foreign Task Suite', function(){

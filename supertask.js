@@ -240,6 +240,15 @@ SuperTask.ST_NONE = ST_NONE;
 SuperTask.ST_RESTRICTED = ST_RESTRICTED;
 SuperTask.ST_MINIMAL = ST_MINIMAL;
 SuperTask.ST_UNRESTRICTED = ST_UNRESTRICTED;
+
+// Extend Flags
+for(var key in Optimizer.flags) {
+    if(!SuperTask[key]) SuperTask[key] = Optimizer.flags[key];
+}
+// Extend Levels
+for(var key in Optimizer.levels) {
+    if(!SuperTask[key]) SuperTask[key] = Optimizer.levels[key];
+}
 ///
 
 module.exports = SuperTask;
