@@ -238,7 +238,7 @@ describe('Optimizer Test Suite', function() {
         }, {
             name: "e3",
             averageExecutionTime: 2000
-        }], null, ~1);
+        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_TIME_DSC);
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
