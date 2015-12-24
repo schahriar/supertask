@@ -260,4 +260,18 @@ describe('Optimizer Test Suite', function() {
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
+    it('should not optimize with level O0', function() {
+        var Array = Optimizer.optimize([{
+            name: "e1",
+            averageExecutionTime: 1900
+        }, {
+            name: "e2",
+            averageExecutionTime: 3200
+        }, {
+            name: "e3",
+            averageExecutionTime: 1000
+        }], Optimizer.levels.ST_O0);
+        expect(Array[0]).to.have.property('name', 'e1');
+        expect(Array[0]).to.not.have.property('value');
+    });
 });
