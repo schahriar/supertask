@@ -228,7 +228,7 @@ describe('Optimizer Test Suite', function() {
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 1200);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
-    it('should respect ascending/descending order', function() {
+    it('should allow ascending/descending order', function() {
         var OptimizedArray = Optimizer.optimize([{
             name: "e1",
             averageExecutionTime: 3000
@@ -239,6 +239,20 @@ describe('Optimizer Test Suite', function() {
             name: "e3",
             averageExecutionTime: 2000
         }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_TIME_DSC);
+        expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
+        expect(OptimizedArray[0]).to.have.property('name', 'e2');
+    });
+    it('should respect sorting algorithm selection', function() {
+        var OptimizedArray = Optimizer.optimize([{
+            name: "e1",
+            averageExecutionTime: 3000
+        }, {
+            name: "e2",
+            averageExecutionTime: 5300
+        }, {
+            name: "e3",
+            averageExecutionTime: 2000
+        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_TIME_DSC | Optimizer.flags.ST_O_SORT_QUICKONLY);
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
