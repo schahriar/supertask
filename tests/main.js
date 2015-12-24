@@ -246,7 +246,7 @@ describe('Optimizer Test Suite', function() {
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
-    it('should respect sorting algorithm selection', function() {
+    it('should respect sorting algorithm selection & offer same results', function() {
         var OptimizedArray = Optimizer.optimize([{
             name: "e1",
             averageExecutionTime: 3000
@@ -273,5 +273,24 @@ describe('Optimizer Test Suite', function() {
         }], Optimizer.levels.ST_O0);
         expect(Array[0]).to.have.property('name', 'e1');
         expect(Array[0]).to.not.have.property('value');
+    });
+    it('should respect ER optimization', function() {
+        var Array = [{
+            name: "e1",
+            averageExecutionTime: 1900,
+            executionRounds: 10
+        }, {
+            name: "e2",
+            averageExecutionTime: 1900,
+            executionRounds: 100
+        }, {
+            name: "e3",
+            averageExecutionTime: 8000,
+            executionRounds: 0
+        }];
+        var first = Optimizer.optimize(Array, Optimizer.levels.ST_O2, Optimizer.flags.ST_O_ER_DSC);
+        expect(first[0]).to.have.property('name', 'e2');
+        var second = Optimizer.optimize(Array, Optimizer.levels.ST_O2, Optimizer.flags.ST_O_ER_ASC);
+        expect(second[0]).to.have.property('name', 'e1');
     });
 });
