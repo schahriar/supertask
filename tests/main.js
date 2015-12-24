@@ -3,6 +3,7 @@ var expect = chai.expect;
 var inspect = require("util").inspect;
 
 var SuperTask = require('../supertask');
+var Optimizer = require('../lib/Optimizations');
 var TaskManager;
 var exec = 0;
 var averager = { prev: 0, current: 0 };
@@ -199,5 +200,46 @@ describe('Permission & Context Suite', function(){
                 done();
             });
         });
+    });
+});
+
+describe('Optimizer Test Suite', function() {
+    it('should oprimize based on AET', function() {
+        var OptimizedArray = Optimizer.optimize([{
+            averageExecutionTime: 5300
+        }, {
+            averageExecutionTime: 1200
+        }, {
+            averageExecutionTime: 2000
+        }]);
+        expect(OptimizedArray[0]).to.deep.equal({ averageExecutionTime: 1200, value: 0 });
+    });
+    it('should retain original content of objects within array', function() {
+        var OptimizedArray = Optimizer.optimize([{
+            name: "e1",
+            averageExecutionTime: 5300
+        }, {
+            name: "e2",
+            averageExecutionTime: 1200
+        }, {
+            name: "e3",
+            averageExecutionTime: 2000
+        }]);
+        expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 1200);
+        expect(OptimizedArray[0]).to.have.property('name', 'e2');
+    });
+    it('should respect ascending/descending order', function() {
+        var OptimizedArray = Optimizer.optimize([{
+            name: "e1",
+            averageExecutionTime: 3000
+        }, {
+            name: "e2",
+            averageExecutionTime: 5300
+        }, {
+            name: "e3",
+            averageExecutionTime: 2000
+        }], null, ~1);
+        expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
+        expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
 });
