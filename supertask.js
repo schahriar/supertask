@@ -138,10 +138,10 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
     }
     var task = this.map.get(name);
     // Combine Contexts
-    if (task.defaultContext && (Object.keys(task.defaultContext).length !== 0)) defaultsDeep(context, task.defaultContext);
+    if (task.defaultContext && (Object.keys(task.defaultContext).length !== 0)) context = defaultsDeep(task.defaultContext, context || {});
     // Combine Permissions Context (SLOWS DOWN EXECUTION)
-    if (task.access !== ST_NONE) {
-        context = this._extendContextFromPermissions(context, task.access);
+    if ((task.access) && (task.access !== ST_NONE)) {
+        context = this._extendContextFromPermissions(context || {}, task.access);
     }
     // Function executed on cargo execution
     var preTracker = function ST_DO_PRETRACKER() {
