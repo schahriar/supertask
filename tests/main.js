@@ -106,6 +106,13 @@ describe('Basic Test Suite', function(){
             done();
         });
     });
+    it('should call with an error if do name is invalid', function(done) {
+        TaskManager.do('unknown', {}, [], function(error) {
+            expect(error).to.be.an('error');
+            expect(error).to.have.property('message', 'Task not found!');
+            done();
+        });
+    });
     it('should check if task exists on has call', function(done) {
        TaskManager.has('test', function(error, has) {
            if(error) throw error;
@@ -174,6 +181,21 @@ describe('Foreign Task Suite', function(){
                 expect(m).to.equal("hey");
                 done();
             }}});
+        });
+    });
+    it('should allow foreign tasks with context as JS functions', function(done) {
+        TaskManager.addForeignWithContext('foreignFunc2', function(callback) {
+            console.log('hey');
+            callback();
+        }, { console: {
+                log: function(m){
+                    expect(m).to.equal("hey");
+                    done();
+                }
+            }
+        }, SuperTask.ST_UNRESTRICTED, function(error, task) {
+            if(error) throw error;
+            TaskManager.do('foreignFunc2');
         });
     });
 });
