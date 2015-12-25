@@ -11,4 +11,4 @@ require('blanket')({
 // Run Main
 require('./tests/main.js');
 
-console.log("<small style='opacity: 0.7; margin: 12px 8px;'> Generated on: ", moment().format('MMMM Do YYYY, h:mm:ss a'), '</small>');
+console.log("<small style='opacity: 0.7; display: block; margin: 7px 13px;'> Generated on: ", moment().format('MMMM Do YYYY, h:mm:ss a'), '</small>');
