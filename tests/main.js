@@ -242,7 +242,7 @@ describe('Optimizer Test Suite', function() {
         }, {
             name: "e3",
             averageExecutionTime: 2000
-        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_AET_DSC);
+        }], Optimizer.levels.ST_O2, Optimizer.flags.ST_O_AET_DSC);
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
@@ -256,7 +256,7 @@ describe('Optimizer Test Suite', function() {
         }, {
             name: "e3",
             averageExecutionTime: 2000
-        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_AET_DSC | Optimizer.flags.ST_O_SORT_QUICKONLY);
+        }], Optimizer.levels.ST_O2, Optimizer.flags.ST_O_AET_DSC | Optimizer.flags.ST_O_SORT_QUICKONLY);
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
@@ -273,6 +273,19 @@ describe('Optimizer Test Suite', function() {
         }], Optimizer.levels.ST_O0);
         expect(Array[0]).to.have.property('name', 'e1');
         expect(Array[0]).to.not.have.property('value');
+    });
+    it('should optimize at optimization level', function() {
+        var Array = Optimizer.optimize([{
+            name: "e1",
+            averageExecutionTime: 1900
+        }, {
+            name: "e2",
+            averageExecutionTime: 3200
+        }, {
+            name: "e3",
+            averageExecutionTime: 1000
+        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_ER_ASC);
+        expect(Array[0]).to.have.property('name', 'e1');
     });
     it('should respect ER optimization', function() {
         var Array = [{
