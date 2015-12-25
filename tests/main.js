@@ -14,6 +14,52 @@ var ftasks = {
     t3: "module.exports = function(callback) { callback(null, process.hrtime()); };"
 };
 
+var samples = {
+    o_basic: [{
+        name: "e1",
+        averageExecutionTime: 5300
+    }, {
+        name: "e2",
+        averageExecutionTime: 1200
+    }, {
+        name: "e3",
+        averageExecutionTime: 2000
+    }],
+    o_mixed: [{
+        name: "e1",
+        averageExecutionTime: 3000
+    }, {
+        name: "e2",
+        averageExecutionTime: 5300
+    }, {
+        name: "e3",
+        averageExecutionTime: 2000
+    }],
+    o_mixed_2: [{
+        name: "e1",
+        averageExecutionTime: 1900
+    }, {
+        name: "e2",
+        averageExecutionTime: 3200
+    }, {
+        name: "e3",
+        averageExecutionTime: 1000
+    }],
+    o_advanced: [{
+        name: "e1",
+        averageExecutionTime: 1900,
+        executionRounds: 10
+    }, {
+        name: "e2",
+        averageExecutionTime: 1900,
+        executionRounds: 100
+    }, {
+        name: "e3",
+        averageExecutionTime: 8000,
+        executionRounds: 0
+    }]
+};
+
 function noop () { return null; }
 
 describe('Basic Test Suite', function(){
@@ -209,101 +255,37 @@ describe('Permission & Context Suite', function(){
 
 describe('Optimizer Test Suite', function() {
     it('should oprimize based on AET', function() {
-        var OptimizedArray = Optimizer.optimize([{
-            averageExecutionTime: 5300
-        }, {
-            averageExecutionTime: 1200
-        }, {
-            averageExecutionTime: 2000
-        }]);
-        expect(OptimizedArray[0]).to.deep.equal({ averageExecutionTime: 1200, value: 0 });
+        var OptimizedArray = Optimizer.optimize(samples.o_basic);
+        expect(OptimizedArray[0]).to.deep.equal({ name: 'e2', averageExecutionTime: 1200, value: 0 });
     });
     it('should retain original content of objects within array', function() {
-        var OptimizedArray = Optimizer.optimize([{
-            name: "e1",
-            averageExecutionTime: 5300
-        }, {
-            name: "e2",
-            averageExecutionTime: 1200
-        }, {
-            name: "e3",
-            averageExecutionTime: 2000
-        }]);
+        var OptimizedArray = Optimizer.optimize(samples.o_basic);
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 1200);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
     it('should allow ascending/descending order', function() {
-        var OptimizedArray = Optimizer.optimize([{
-            name: "e1",
-            averageExecutionTime: 3000
-        }, {
-            name: "e2",
-            averageExecutionTime: 5300
-        }, {
-            name: "e3",
-            averageExecutionTime: 2000
-        }], Optimizer.levels.ST_O2, Optimizer.flags.ST_O_AET_DSC);
+        var OptimizedArray = Optimizer.optimize(samples.o_mixed, Optimizer.levels.ST_O2, Optimizer.flags.ST_O_AET_DSC);
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
     it('should respect sorting algorithm selection & offer same results', function() {
-        var OptimizedArray = Optimizer.optimize([{
-            name: "e1",
-            averageExecutionTime: 3000
-        }, {
-            name: "e2",
-            averageExecutionTime: 5300
-        }, {
-            name: "e3",
-            averageExecutionTime: 2000
-        }], Optimizer.levels.ST_O2, Optimizer.flags.ST_O_AET_DSC | Optimizer.flags.ST_O_SORT_QUICKONLY);
+        var OptimizedArray = Optimizer.optimize(samples.o_mixed, Optimizer.levels.ST_O2, Optimizer.flags.ST_O_AET_DSC | Optimizer.flags.ST_O_SORT_QUICKONLY);
         expect(OptimizedArray[0]).to.have.property('averageExecutionTime', 5300);
         expect(OptimizedArray[0]).to.have.property('name', 'e2');
     });
     it('should not optimize with level O0', function() {
-        var Array = Optimizer.optimize([{
-            name: "e1",
-            averageExecutionTime: 1900
-        }, {
-            name: "e2",
-            averageExecutionTime: 3200
-        }, {
-            name: "e3",
-            averageExecutionTime: 1000
-        }], Optimizer.levels.ST_O0);
+        var Array = Optimizer.optimize(samples.o_mixed_2, Optimizer.levels.ST_O0);
         expect(Array[0]).to.have.property('name', 'e1');
         expect(Array[0]).to.not.have.property('value');
     });
     it('should optimize at optimization level', function() {
-        var Array = Optimizer.optimize([{
-            name: "e1",
-            averageExecutionTime: 1900
-        }, {
-            name: "e2",
-            averageExecutionTime: 3200
-        }, {
-            name: "e3",
-            averageExecutionTime: 1000
-        }], Optimizer.levels.ST_O1, Optimizer.flags.ST_O_ER_ASC);
+        var Array = Optimizer.optimize(samples.o_mixed_2, Optimizer.levels.ST_O1, Optimizer.flags.ST_O_ER_ASC);
         expect(Array[0]).to.have.property('name', 'e1');
     });
     it('should respect ER optimization', function() {
-        var Array = [{
-            name: "e1",
-            averageExecutionTime: 1900,
-            executionRounds: 10
-        }, {
-            name: "e2",
-            averageExecutionTime: 1900,
-            executionRounds: 100
-        }, {
-            name: "e3",
-            averageExecutionTime: 8000,
-            executionRounds: 0
-        }];
-        var first = Optimizer.optimize(Array, Optimizer.levels.ST_O2, Optimizer.flags.ST_O_ER_DSC);
+        var first = Optimizer.optimize(samples.o_advanced, Optimizer.levels.ST_O2, Optimizer.flags.ST_O_ER_DSC);
         expect(first[0]).to.have.property('name', 'e2');
-        var second = Optimizer.optimize(Array, Optimizer.levels.ST_O2, Optimizer.flags.ST_O_ER_ASC);
+        var second = Optimizer.optimize(samples.o_advanced, Optimizer.levels.ST_O2, Optimizer.flags.ST_O_ER_ASC);
         expect(second[0]).to.have.property('name', 'e1');
     });
 });
