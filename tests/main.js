@@ -332,4 +332,13 @@ describe('Optimizer Test Suite', function() {
         var second = Optimizer.optimize(samples.o_advanced2, Optimizer.levels.ST_O1, Optimizer.flags.ST_O_PRIORITY_ASC);
         expect(second[0]).to.have.property('name', 'e2');
     });
+    it('should gracefully handle a -1 priority', function() {
+        var special_sample = samples.o_advanced2;
+        special_sample[1].priority = -1;
+        
+        var first = Optimizer.optimize(special_sample, Optimizer.levels.ST_O1, Optimizer.flags.ST_O_PRIORITY_DSC);
+        expect(first[0]).to.have.property('name', 'e3');
+        var second = Optimizer.optimize(special_sample, Optimizer.levels.ST_O1, Optimizer.flags.ST_O_PRIORITY_ASC);
+        expect(second[0]).to.have.property('name', 'e1');
+    });
 });
