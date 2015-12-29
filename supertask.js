@@ -24,7 +24,7 @@ var SuperTask = function ST_INIT() {
     this.map = new Map();
 };
 
-SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, access, context, isModule, remote, sandboxed) {
+SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, access, priority, context, isModule, remote, sandboxed) {
     return {
         func: func,
         local: (type === ST_LOCAL_TYPE),
@@ -38,6 +38,7 @@ SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, access, c
         lastDiff: 0,
         averageExecutionTime: -1,
         executionRounds: 0,
+        priority: (priority)?Math.abs(priority):-1,
         defaultContext: context || {},
         access: access || ST_NONE
     };
@@ -109,8 +110,8 @@ SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
     this._addTask(name, func, ST_LOCAL_TYPE, callback);
 };
 
-SuperTask.prototype.addLocalWithContext = function ST_ADD_LOCAL_W_CONTEXT(name, func, context, permissions, callback) {
-    this._addTask(name, func, ST_LOCAL_TYPE, permissions, context, callback);
+SuperTask.prototype.addLocalAdvanced = function ST_ADD_LOCAL_ADVANCED(name, func, context, priority, permissions, callback) {
+    this._addTask(name, func, ST_LOCAL_TYPE, permissions, priority, context, callback);
 };
 
 SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback) {
@@ -122,13 +123,13 @@ SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback)
     this._addTask(name, source, ST_FOREIGN_TYPE, callback);
 };
 
-SuperTask.prototype.addForeignWithContext = function ST_ADD_FOREIGN_W_CONTEXT(name, source, context, permissions, callback) {
+SuperTask.prototype.addForeignAdvanced = function ST_ADD_FOREIGN_ADVANCED(name, source, context, priority, permissions, callback) {
     // VM requires a String source to compile
     // If given source is a function convert it to source (context is lost)
     if (typeof source === 'function') {
         source = 'module.exports = ' + source.toString();
     }
-    this._addTask(name, source, ST_FOREIGN_TYPE, permissions, context, callback);
+    this._addTask(name, source, ST_FOREIGN_TYPE, permissions, priority, context, callback);
 };
 
 SuperTask.prototype.do = function ST_DO(name, context, args, callback) {

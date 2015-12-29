@@ -138,7 +138,7 @@ describe('Basic Test Suite', function(){
 
 describe('Foreign Task Suite', function(){
     it('should add a foreign task', function(done) {
-        TaskManager.addForeignWithContext('foreign', ftasks.t1, {}, SuperTask.ST_MINIMAL, function(error, task) {
+        TaskManager.addForeignAdvanced('foreign', ftasks.t1, {}, 0, SuperTask.ST_MINIMAL, function(error, task) {
             if(error) throw error;
             expect(task).to.have.property('sandboxed');
             done();
@@ -184,7 +184,7 @@ describe('Foreign Task Suite', function(){
         });
     });
     it('should allow foreign tasks with context as JS functions', function(done) {
-        TaskManager.addForeignWithContext('foreignFunc2', function(callback) {
+        TaskManager.addForeignAdvanced('foreignFunc2', function(callback) {
             console.log('hey');
             callback();
         }, { console: {
@@ -193,7 +193,7 @@ describe('Foreign Task Suite', function(){
                     done();
                 }
             }
-        }, SuperTask.ST_UNRESTRICTED, function(error, task) {
+        }, 0, SuperTask.ST_UNRESTRICTED, function(error, task) {
             if(error) throw error;
             TaskManager.do('foreignFunc2');
         });
@@ -253,7 +253,7 @@ describe('Queue & Cargo Suite', function(){
 describe('Permission & Context Suite', function(){
     /* Add More Tests */
     it('should contain the context with respect to permissions', function(done) {
-        TaskManager.addForeignWithContext('foreignT3', ftasks.t3, {}, SuperTask.ST_UNRESTRICTED, function(error, task) {
+        TaskManager.addForeignAdvanced('foreignT3', ftasks.t3, {}, 0, SuperTask.ST_UNRESTRICTED, function(error, task) {
             if(error) throw error;
             expect(task).to.have.property('sandboxed');
             TaskManager.do('foreignT3', {}, [], function(error, time) {
@@ -264,7 +264,7 @@ describe('Permission & Context Suite', function(){
         });
     });
     it('should restrict the context', function(done) {
-        TaskManager.addForeignWithContext('foreignT3C', ftasks.t3, {}, SuperTask.ST_RESTRICTED, function(error, task) {
+        TaskManager.addForeignAdvanced('foreignT3C', ftasks.t3, {}, 0, SuperTask.ST_RESTRICTED, function(error, task) {
             if(error) throw error;
             expect(task).to.have.property('sandboxed');
             TaskManager.do('foreignT3C', {}, [], function(error, time) {
