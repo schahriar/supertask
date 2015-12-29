@@ -82,9 +82,8 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
 };
 
 SuperTask.prototype._newCargo = function ST__CARGO_ADD(CargoTask) {
-    // Push Cargo Object & Attach postTracker
+    // Push to Cargo & Resume if paused
     this.cargo.push(CargoTask);
-    // Resume Cargo
     this.cargo.resume();
 };
 
@@ -161,7 +160,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         }
         // Bump execution rounds
         task.executionRounds++;
-        // Call Callback function if provided
+
         if (typeof callback === 'function') callback.apply(task, arguments);
     };
     // Sanitize args
@@ -200,15 +199,17 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         vm.createContext(context);
         // Run Compiled Script
         task.func.runInContext(context);
-        // If task is defined as module
+        
         if (task.module) {
             // Make sure module.exports is set to a function
+            // after script is run. Similar to how require(...)
+            // modules work.
             if (typeof context.module.exports === 'function') {
                 // Cache and Call the function
                 task.func = context.module.exports;
-                // Set isCompiled property
+                // Set isCompiled property to prevent recompilation
                 task.isCompiled = true;
-                // Set Task Compile Function to CargoTask
+                // Attach Task Compile Function to CargoTask
                 CargoTask.func = task.func;
                 // Push to Cargo
                 this._newCargo(CargoTask);
