@@ -57,6 +57,22 @@ var samples = {
         name: "e3",
         averageExecutionTime: 8000,
         executionRounds: 0
+    }],
+    o_advanced2: [{
+        name: "e1",
+        averageExecutionTime: 1900,
+        executionRounds: 10,
+        priority: 4
+    }, {
+        name: "e2",
+        averageExecutionTime: 1900,
+        executionRounds: 100,
+        priority: 0
+    }, {
+        name: "e3",
+        averageExecutionTime: 8000,
+        executionRounds: 0,
+        priority: 100
     }]
 };
 
@@ -309,5 +325,11 @@ describe('Optimizer Test Suite', function() {
         expect(first[0]).to.have.property('name', 'e2');
         var second = Optimizer.optimize(samples.o_advanced, Optimizer.levels.ST_O2, Optimizer.flags.ST_O_ER_ASC);
         expect(second[0]).to.have.property('name', 'e1');
+    });
+    it('should sort with respect to priority', function() {
+        var first = Optimizer.optimize(samples.o_advanced2, Optimizer.levels.ST_O1, Optimizer.flags.ST_O_PRIORITY_DSC);
+        expect(first[0]).to.have.property('name', 'e3');
+        var second = Optimizer.optimize(samples.o_advanced2, Optimizer.levels.ST_O1, Optimizer.flags.ST_O_PRIORITY_ASC);
+        expect(second[0]).to.have.property('name', 'e2');
     });
 });
