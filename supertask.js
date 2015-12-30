@@ -27,6 +27,7 @@ var SuperTask = function ST_INIT() {
 SuperTask.prototype._createTask = function ST__CREATE_TASK(func, type, access, priority, context, isModule, remote, sandboxed) {
     return {
         func: func,
+        source: (typeof func === 'function')?('module.exports = ' + func.toString()):func,
         local: (type === ST_LOCAL_TYPE),
         shared: (type === ST_SHARED_TYPE),
         sandboxed: ((!!sandboxed) || (type === ST_FOREIGN_TYPE)),
