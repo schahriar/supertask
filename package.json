@@ -5,7 +5,8 @@
   "main": "supertask.js",
   "scripts": {
     "test": "mocha ./tests/main.js | mocha coverage.js -R mocha-lcov-reporter > lcov.info",
-    "posttest": "codeclimate-test-reporter < lcov.info"
+    "posttest": "codeclimate-test-reporter < lcov.info",
+    "localtest": "mocha ./tests/main.js"
   },
   "repository": {
     "type": "git",
