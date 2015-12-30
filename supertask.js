@@ -15,13 +15,16 @@ var ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
 // PERMISSIONS
 var ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 ///
+// No Operation function
+function noop(){ return null; }
 
-var SuperTask = function ST_INIT() {
+var SuperTask = function ST_INIT(strict) {
     this.cargo = async.cargo(this._next, 50);
     this._batch = [];
     this._paused = true;
     this._busy = false;
     this.map = new Map();
+    this.strict = (!!strict);
 };
 
 SuperTask.prototype._createTask = TaskModel;
@@ -114,8 +117,16 @@ SuperTask.prototype.addForeignAdvanced = function ST_ADD_FOREIGN_ADVANCED(name, 
 };
 
 SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
+    // Check for callback
+    // Note that we only throw if strict is set to true
+    if ((typeof callback !== 'function') && (this.strict === true)) throw new Error("A callback is required to execute a task. Pass a noop function if errors are intended to be ignored.");
+    else if(typeof callback !== 'function') {
+        callback = noop;
+    }
+    
+    // Check for mapped task
     if (!this.map.has(name)) {
-        if (typeof callback === 'function') callback(new Error('Task not found!'));
+        callback(new Error('Task not found!'));
         return;
     }
     var task = this.map.get(name);
@@ -143,7 +154,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         // Bump execution rounds
         task.executionRounds++;
 
-        if (typeof callback === 'function') callback.apply(task, arguments);
+        callback.apply(task, arguments);
     };
     // Sanitize args
     args = (Array.isArray(args)) ? args : [];
