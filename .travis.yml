@@ -4,3 +4,5 @@ node_js:
   - "4.2"
   - "4.1"
   - "4.0"
+env:
+  - CODECLIMATE_REPO_TOKEN=1365af265e75d44e8be0673f3313f5f2860bf51012f4b53f7d3d011c995107f8
