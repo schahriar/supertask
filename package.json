@@ -5,6 +5,7 @@
   "main": "supertask.js",
   "scripts": {
     "test": "mocha ./tests/main.js",
+    "posttest": "mocha coverage.js -r blanket -R mocha-lcov-reporter",
     "coverage": "mocha coverage.js -r blanket -R html-cov > coverage.html"
   },
   "repository": {
@@ -26,7 +27,9 @@
   "devDependencies": {
     "blanket": "^1.2.1",
     "chai": "^3.4.1",
+    "coveralls": "^2.11.6",
     "mocha": "^2.3.4",
+    "mocha-lcov-reporter": "^1.0.0",
     "moment": "^2.10.6"
   },
   "dependencies": {
