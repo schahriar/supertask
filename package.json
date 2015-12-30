@@ -5,7 +5,7 @@
   "main": "supertask.js",
   "scripts": {
     "test": "mocha ./tests/main.js",
-    "posttest": "mocha coverage.js --require blanket --reporter mocha-lcov-reporter ./node_modules/coveralls/bin/coveralls.js",
+    "posttest": "mocha coverage.js -r blanket -R mocha-lcov-reporter > lcov.info | codeclimate-test-reporter < lcov.info",
     "coverage": "mocha coverage.js -r blanket -R html-cov > coverage.html"
   },
   "repository": {
@@ -27,7 +27,7 @@
   "devDependencies": {
     "blanket": "^1.2.1",
     "chai": "^3.4.1",
-    "coveralls": "^2.11.6",
+    "codeclimate-test-reporter": "^0.1.1",
     "mocha": "^2.3.4",
     "mocha-lcov-reporter": "^1.0.0",
     "moment": "^2.10.6"
