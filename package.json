@@ -4,8 +4,8 @@
   "description": "A task & queue environment ideal for distributed computing and execution",
   "main": "supertask.js",
   "scripts": {
-    "test": "mocha ./tests/main.js",
-    "posttest": "mocha coverage.js -R mocha-lcov-reporter > lcov.info | codeclimate-test-reporter < lcov.info",
+    "test": "mocha ./tests/main.js | mocha coverage.js -R mocha-lcov-reporter > lcov.info",
+    "posttest": "codeclimate-test-reporter < lcov.info",
     "coverage": "mocha coverage.js -R html-cov > coverage.html"
   },
   "repository": {
