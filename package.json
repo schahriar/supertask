@@ -5,7 +5,7 @@
   "main": "supertask.js",
   "scripts": {
     "test": "mocha ./tests/main.js",
-    "posttest": "mocha coverage.js -r blanket -R mocha-lcov-reporter",
+    "posttest": "mocha --require blanket --reporter mocha-lcov-reporter ./node_modules/coveralls/bin/coveralls.js",
     "coverage": "mocha coverage.js -r blanket -R html-cov > coverage.html"
   },
   "repository": {
