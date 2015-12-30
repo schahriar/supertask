@@ -244,12 +244,12 @@ SuperTask.ST_MINIMAL = ST_MINIMAL;
 SuperTask.ST_UNRESTRICTED = ST_UNRESTRICTED;
 
 // Extend Flags
-for(var key in Optimizer.flags) {
-    if(!SuperTask[key]) SuperTask[key] = Optimizer.flags[key];
+for(var fkey in Optimizer.flags) {
+    if(!SuperTask[fkey]) SuperTask[fkey] = Optimizer.flags[fkey];
 }
 // Extend Levels
-for(var key in Optimizer.levels) {
-    if(!SuperTask[key]) SuperTask[key] = Optimizer.levels[key];
+for(var lkey in Optimizer.levels) {
+    if(!SuperTask[lkey]) SuperTask[lkey] = Optimizer.levels[lkey];
 }
 ///
 
