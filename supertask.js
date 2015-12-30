@@ -8,6 +8,7 @@ var defaultsDeep = require('lodash.defaultsdeep');
 /// Internal Modules
 var ContextPermissions = require('./lib/ContextPermissions');
 var Optimizer = require('./lib/Optimizations');
+var TaskModel = require('./lib/TaskModel');
 ///
 /// Predefined Types
 // TYPES
@@ -90,6 +91,44 @@ SuperTask.prototype._addTask = function ST__ADD_TASK() {
     if (typeof callback === 'function') callback(null, task);
 };
 
+SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
+    // Check if script is not compiled
+    if (typeof task.func === 'string') {
+        // Compile script using VM
+        task.func = new vm.Script(task.func);
+    }
+    // Make sure we can call run on the compiled script
+    if (typeof task.func.runInContext !== 'function') {
+        return new Error("Unknown Error Occurred. Function property of Task is invalid or failed to compile.");
+    }
+    // Define module.exports and exports in context
+    context.module = {};
+    context.exports = context.module.exports = {};
+    
+    // Create VM Context from context object
+    vm.createContext(context);
+    // Run Compiled Script
+    task.func.runInContext(context);
+    
+    if (task.module) {
+        // Make sure module.exports is set to a function
+        // after script is run. Similar to how require(...)
+        // modules work.
+        if (typeof context.module.exports === 'function') {
+            // Cache and Call the function
+            task.func = context.module.exports;
+            // Set isCompiled property to prevent recompilation
+            task.isCompiled = true;
+            
+            return task.func;
+        }else{
+            return new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function.");
+        }
+    }else{
+        return task.func;
+    }
+};
+
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
     this._addTask(name, func, ST_LOCAL_TYPE, callback);
 };
@@ -129,6 +168,7 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
         callback(new Error('Task not found!'));
         return;
     }
+    
     var task = this.map.get(name);
     // Combine Contexts
     if (task.defaultContext && (Object.keys(task.defaultContext).length !== 0)) context = defaultsDeep(task.defaultContext, context || {});
@@ -173,48 +213,16 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
     CargoTask.callback = postTracker;
     //
 
+    // Compile task if it is in source form
     if (typeof task.func !== 'function') {
-        // Check if script is not compiled
-        if (typeof task.func === 'string') {
-            // Compile script using VM
-            task.func = new vm.Script(task.func);
-        }
-        // Make sure we can call run on the compiled script
-        if (typeof task.func.runInContext !== 'function') {
-            if (typeof callback === 'function') callback(new Error("Unknown Error Occurred. Function property of Task is invalid or failed to compile."));
-            return;
-        }
-        // Define module.exports and exports in context
-        context.module = {};
-        context.exports = context.module.exports = {};
-        
-        // Create VM Context from context object
-        vm.createContext(context);
-        // Run Compiled Script
-        task.func.runInContext(context);
-        
-        if (task.module) {
-            // Make sure module.exports is set to a function
-            // after script is run. Similar to how require(...)
-            // modules work.
-            if (typeof context.module.exports === 'function') {
-                // Cache and Call the function
-                task.func = context.module.exports;
-                // Set isCompiled property to prevent recompilation
-                task.isCompiled = true;
-                // Attach Task Compile Function to CargoTask
-                CargoTask.func = task.func;
-                // Push to Cargo
-                this._newCargo(CargoTask);
-            } else {
-                // Call Callback with an error if module.exports is not set to a function
-                if (typeof callback === 'function') callback(new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function."));
-            }
-        }
-    } else {
-        // Push to Cargo
-        this._newCargo(CargoTask);
+        var result = this._compile(task, context);
+        if(typeof result === 'function') CargoTask.func = result;
+        else if(result === true) return callback();
+        else if(typeof result === 'object') return callback(result);
+        else return callback(new Error("Unknown error occurred. Failed to compile and execution was halted."));
     }
+    // Push to Cargo
+    this._newCargo(CargoTask);
 };
 
 SuperTask.prototype.remove = function ST_REMOVE(name, callback) {
