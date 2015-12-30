@@ -5,9 +5,6 @@ require('blanket')({
     "data-cover-never": [ "node_modules", "tests" ],
     "data-cover-reporter-options": {
         "shortnames": true
-    },
-    "data-cover-flags": {
-        "engineOnly":true
     }
 });
 
