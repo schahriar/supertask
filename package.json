@@ -5,8 +5,7 @@
   "main": "supertask.js",
   "scripts": {
     "test": "mocha ./tests/main.js | mocha coverage.js -R mocha-lcov-reporter > lcov.info",
-    "posttest": "codeclimate-test-reporter < lcov.info",
-    "coverage": "mocha coverage.js -R html-cov > coverage.html"
+    "posttest": "codeclimate-test-reporter < lcov.info"
   },
   "repository": {
     "type": "git",
@@ -29,8 +28,7 @@
     "chai": "^3.4.1",
     "codeclimate-test-reporter": "^0.1.1",
     "mocha": "^2.3.4",
-    "mocha-lcov-reporter": "^1.0.0",
-    "moment": "^2.10.6"
+    "mocha-lcov-reporter": "^1.0.0"
   },
   "dependencies": {
     "async": "^1.5.0",
