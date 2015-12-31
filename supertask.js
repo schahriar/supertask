@@ -24,6 +24,7 @@ var SuperTask = function ST_INIT(strict) {
     this._batch = [];
     this._paused = true;
     this._busy = false;
+    this._timeout = 1000;
     this.map = new Map();
     this.strict = (!!strict);
 };
@@ -33,6 +34,7 @@ SuperTask.prototype._createTask = TaskModel;
 SuperTask.prototype._extendContextFromPermissions = ContextPermissions;
 
 SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
+    var timeout_duration = this._timeout;
     /* At this point the source is fully compiled
     /* to a function or a function is resupplied
     /* from cache to be executed. Here we transfer
@@ -44,9 +46,36 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
     
     // Go through tasks in parallel
     async.each(tasks, function ST__CARGO_EACH(task, done) {
+        /* A timeout indicator is introduced here
+           if a task runs past a certain time it can
+           clog the cargo by filling up the maximum
+           number of parallel tasks and thus requires
+           a reasonably short timeout to proceed and
+           assume that the task has completed. Note that
+           this does not call the task callback function
+           which may never be called if the task somehow
+           fails without an error. 
+        */
+        // Timedout indicator
+        var ST__CARGO_TIMEDOUT = false;
+        // Timeout holder
+        var ST__CARGO_TIME;
+        // Timeout Tracker
+        function ST__CARGO_COMPLETE(isComplete) {
+            // Timedout previously, we won't call done twice
+            if(ST__CARGO_TIMEDOUT) return;
+            // Timeout
+            if(!isComplete) ST__CARGO_TIMEDOUT = true;
+            // Clear previous timeout
+            clearTimeout(ST__CARGO_TIME);
+            // Indicate that the queue is free to proceed
+            done();
+        }
+        // Set timeout to this._timeout or 1 second
+        ST__CARGO_TIME = setTimeout(ST__CARGO_COMPLETE, timeout_duration || 1000);
         // Cargo Tracker
         function ST__CARGO_TRACKER(error) {
-            done();
+            ST__CARGO_COMPLETE(true);
             task.callback.apply(this, arguments);
         }
         // Call preTracker
@@ -102,6 +131,7 @@ SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
         return new Error("Unknown Error Occurred. Function property of Task is invalid or failed to compile.");
     }
     // Define module.exports and exports in context
+    if(!context) context = {};
     context.module = {};
     context.exports = context.module.exports = {};
     
@@ -127,6 +157,11 @@ SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
     }else{
         return task.func;
     }
+};
+
+SuperTask.prototype.timeout = function ST_GETSET_TIMEOUT(duration) {
+    if(duration) this._timeout = duration;
+    else return this._timeout;
 };
 
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {

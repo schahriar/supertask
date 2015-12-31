@@ -11,7 +11,8 @@ var averager = { prev: 0, current: 0 };
 var ftasks = {
     t1: "var exec = 0; module.exports = function(a1, callback){ setTimeout(function(){callback(null, a1, ++exec);}, 10) };",
     t2: "module.exports = function(callback) { callback(); console.log('hey'); };",
-    t3: "module.exports = function(callback) { callback(null, process.hrtime()); };"
+    t3: "module.exports = function(callback) { callback(null, process.hrtime()); };",
+    t4delayed: "module.exports = function(callback) { setTimeout(function(){callback(null, process.hrtime());}, 5000); };"
 };
 
 var samples = {
@@ -193,8 +194,11 @@ describe('Foreign Task Suite', function(){
             callback();
         }, function(error, task) {
             if(error) throw error;
+            var called = false;
             TaskManager.do('foreignFunc', { console: { log: function(m){
+                if(called) return;
                 expect(m).to.equal("hey");
+                called = true;
                 done();
             }}});
         });
@@ -263,6 +267,27 @@ describe('Queue & Cargo Suite', function(){
             // Reset
             TaskManager.cargo.drain = noop;
         };
+    });
+    it('should free cargo after set timeout', function(done) {
+        // Increase test timeout
+        this.timeout(5000);
+        // Set timeout
+        TaskManager.timeout(500);
+        expect(TaskManager.timeout()).to.be.equal(500);
+        TaskManager.addForeignAdvanced('foreignDelayed', ftasks.t4delayed, {}, 0, SuperTask.ST_UNRESTRICTED, function(error, task) {
+            if(error) throw error;
+            // Clog the cargo
+            TaskManager.cargo.payload = 10;
+            for(var i=0; i<10; i++) {
+                TaskManager.do('foreignDelayed');
+            }
+            setImmediate(function(){
+                TaskManager.do('foreignFunc', {}, [], function(){
+                    done();
+                });
+                TaskManager.timeout(1500);
+            });
+        });
     });
 });
 
