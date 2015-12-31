@@ -171,6 +171,14 @@ SuperTask.prototype.addLocalAdvanced = function ST_ADD_LOCAL_ADVANCED(name, func
     this._addTask(name, func, ST_LOCAL_TYPE, permissions, priority, context, callback);
 };
 
+SuperTask.prototype.addShared = function ST_ADD_SHARED(name, func, callback) {
+    this._addTask(name, func, ST_SHARED_TYPE, callback);
+};
+
+SuperTask.prototype.addSharedAdvanced = function ST_ADD_SHARED_ADVANCED(name, func, context, priority, permissions, callback) {
+    this._addTask(name, func, ST_SHARED_TYPE, permissions, priority, context, callback);
+};
+
 SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback) {
     // VM requires a String source to compile
     // If given source is a function convert it to source (context is lost)

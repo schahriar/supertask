@@ -102,6 +102,41 @@ describe('Basic Test Suite', function(){
             done();
         });
     });
+    it('should add an advanced local task', function(done) {
+        TaskManager.addLocalAdvanced('testadvanced', function(callback) {
+            exec++;
+            callback(null, this.test);
+        }, { test: 'advanced' }, 0, SuperTask.ST_NONE, function(error, task) {
+            if(error) throw error;
+            expect(task).to.have.property('shared', false);
+            TaskManager.do('testadvanced', {}, [], function(error, test){
+                expect(test).to.be.equal('advanced');
+                done();
+            });
+        });
+    });
+    it('should add a shared task', function(done) {
+        TaskManager.addShared('testShared', function(callback) {
+            exec++;
+            callback(null, 'hey');
+        }, function(error, task) {
+            if(error) throw error;
+            expect(task).to.have.property('shared', true);
+            done();
+        });
+    });
+    it('should add and run a shared task', function(done) {
+        TaskManager.addSharedAdvanced('testSharedAdvanced', function(callback) {
+            exec++;
+            callback(null, this.test);
+        }, { test: 'advanced' }, 0, SuperTask.ST_NONE, function(error) {
+            if(error) throw error;
+            TaskManager.do('testSharedAdvanced', {}, [], function(error, test){
+                expect(test).to.be.equal('advanced');
+                done();
+            });
+        });
+    });
     it('should calculate average execution time', function(done) {
         TaskManager.do('test', {}, [], function(error, result) {
             if(error) throw error;
