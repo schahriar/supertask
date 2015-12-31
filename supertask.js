@@ -105,19 +105,18 @@ SuperTask.prototype._newCargo = function ST__CARGO_ADD(CargoTask) {
 SuperTask.prototype._addTask = function ST__ADD_TASK() {
     var args = Array.prototype.slice.call(arguments);
     var name = args.shift();
-    var callback = args.pop();
+    var callback = (typeof args[args.length-1] === 'function')?args.pop():noop;
     
     // Make sure Map Key is not taken
     if (this.map.has(name)) {
-        if (typeof callback === 'function') callback(new Error('Enable to create new task. A Task with the given name already exists.'));
-        return;
+        return callback(new Error('Enable to create new task. A Task with the given name already exists.'));
     }
 
     var task = this._createTask.apply(this, args);
     // Add Task to Map
     this.map.set(name, task);
 
-    if (typeof callback === 'function') callback(null, task);
+    callback(null, task);
 };
 
 SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
@@ -262,11 +261,11 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
 
 SuperTask.prototype.remove = function ST_REMOVE(name, callback) {
     var result = this.map.delete(name);
-    if (typeof callback === 'function') callback((!result) ? (new Error('Task not found!')) : null);
+    callback((!result) ? (new Error('Task not found!')) : null);
 };
 
 SuperTask.prototype.has = function ST_HAS(name, callback) {
-    if (typeof callback === 'function') callback(null, (!!this.map.has(name)));
+    callback(null, (!!this.map.has(name)));
 };
 
 /// EXTEND PREDEFINED VARS
