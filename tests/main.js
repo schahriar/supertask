@@ -89,12 +89,13 @@ describe('Basic Test Suite', function(){
             callback(null, 'hey');
         }, function(error, task) {
             if(error) throw error;
-            expect(task).to.have.property('local');
+            expect(task).to.have.property('model');
+            expect(task.model).to.have.property('local');
             done();
         });
     });
     it('should run a task', function(done) {
-        TaskManager.do('test', {}, [], function(error, result) {
+        TaskManager.do('test', function(error, result) {
             if(error) throw error;
             expect(result).to.equal('hey');
             expect(exec).to.be.gte(1);
@@ -102,14 +103,16 @@ describe('Basic Test Suite', function(){
             done();
         });
     });
-    it('should add an advanced local task', function(done) {
-        TaskManager.addLocalAdvanced('testadvanced', function(callback) {
+    it('should allow for context modifications', function(done) {
+        TaskManager.addLocal('testadvanced', function(callback) {
             exec++;
             callback(null, this.test);
-        }, { test: 'advanced' }, 0, SuperTask.ST_NONE, function(error, task) {
+        }, function(error, task) {
             if(error) throw error;
-            expect(task).to.have.property('shared', false);
-            TaskManager.do('testadvanced', {}, [], function(error, test){
+            task.context({ test: 'advanced' });
+            task.permission(SuperTask.ST_NONE);
+            expect(task.model).to.have.property('shared', false);
+            TaskManager.do('testadvanced', function(error, test){
                 expect(test).to.be.equal('advanced');
                 done();
             });
@@ -121,24 +124,26 @@ describe('Basic Test Suite', function(){
             callback(null, 'hey');
         }, function(error, task) {
             if(error) throw error;
-            expect(task).to.have.property('shared', true);
+            expect(task.model).to.have.property('shared', true);
             done();
         });
     });
-    it('should add and run a shared task', function(done) {
-        TaskManager.addSharedAdvanced('testSharedAdvanced', function(callback) {
+    it('should run a shared task', function(done) {
+        TaskManager.addShared('testSharedAdvanced', function(callback) {
             exec++;
             callback(null, this.test);
-        }, { test: 'advanced' }, 0, SuperTask.ST_NONE, function(error) {
+        }, function(error, task) {
             if(error) throw error;
-            TaskManager.do('testSharedAdvanced', {}, [], function(error, test){
+            task.context({ test: 'advanced' });
+            task.permission(SuperTask.ST_NONE);
+            TaskManager.do('testSharedAdvanced', function(error, test){
                 expect(test).to.be.equal('advanced');
                 done();
             });
         });
     });
     it('should calculate average execution time', function(done) {
-        TaskManager.do('test', {}, [], function(error, result) {
+        TaskManager.do('test', function(error, result) {
             if(error) throw error;
             expect(result).to.equal('hey');
             expect(exec).to.be.gte(1);
@@ -159,7 +164,7 @@ describe('Basic Test Suite', function(){
         });
     });
     it('should call with an error if do name is invalid', function(done) {
-        TaskManager.do('unknown', {}, [], function(error) {
+        TaskManager.do('unknown', function(error) {
             expect(error).to.be.an('error');
             expect(error).to.have.property('message', 'Task not found!');
             done();
@@ -190,14 +195,15 @@ describe('Basic Test Suite', function(){
 
 describe('Foreign Task Suite', function(){
     it('should add a foreign task', function(done) {
-        TaskManager.addForeignAdvanced('foreign', ftasks.t1, {}, 0, SuperTask.ST_MINIMAL, function(error, task) {
+        TaskManager.addForeign('foreign', ftasks.t1, function(error, task) {
             if(error) throw error;
-            expect(task).to.have.property('sandboxed');
+            task.permission(SuperTask.ST_MINIMAL);
+            expect(task.model).to.have.property('sandboxed', true);
             done();
         });
     });
     it('should run a foreign task', function(done) {
-        TaskManager.do('foreign', {}, ['HelloWorld'], function(error, a1, count) {
+        TaskManager.do('foreign', 'HelloWorld', function(error, a1, count) {
             if(error) throw error;
             expect(a1).to.equal('HelloWorld');
             expect(count).to.equal(1);
@@ -206,21 +212,12 @@ describe('Foreign Task Suite', function(){
         });
     });
     it('should compile and cache a foreign task', function(done) {
-        TaskManager.do('foreign', {}, ['HelloWorld'], function(error, a1, count) {
+        TaskManager.do('foreign', 'HelloWorld', function(error, a1, count) {
             if(error) throw error;
             expect(a1).to.equal('HelloWorld');
             expect(count).to.equal(2);
             expect(this.isCompiled).to.equal(true);
             done();
-        });
-    });
-    it('should run a foreign task with unique context', function(done) {
-        TaskManager.addForeign('foreignUnique', ftasks.t2, function(error, task) {
-            if(error) throw error;
-            TaskManager.do('foreignUnique', { console: { log: function(m){
-                expect(m).to.equal("hey");
-                done();
-            }}});
         });
     });
     it('should allow foreign tasks as JS functions', function(done) {
@@ -230,26 +227,30 @@ describe('Foreign Task Suite', function(){
         }, function(error, task) {
             if(error) throw error;
             var called = false;
-            TaskManager.do('foreignFunc', { console: { log: function(m){
+            task.context({ console: { log: function(m){
                 if(called) return;
                 expect(m).to.equal("hey");
                 called = true;
                 done();
             }}});
+            TaskManager.do('foreignFunc');
         });
     });
     it('should allow foreign tasks with context as JS functions', function(done) {
-        TaskManager.addForeignAdvanced('foreignFunc2', function(callback) {
+        TaskManager.addForeign('foreignFunc2', function(callback) {
             console.log('hey');
             callback();
-        }, { console: {
-                log: function(m){
-                    expect(m).to.equal("hey");
-                    done();
-                }
-            }
-        }, 0, SuperTask.ST_UNRESTRICTED, function(error, task) {
+        }, function(error, task) {
             if(error) throw error;
+            task.context({
+                console: {
+                    log: function(m){
+                        expect(m).to.equal("hey");
+                        done();
+                    }
+                }
+            });
+            task.permission(SuperTask.ST_UNRESTRICTED);
             TaskManager.do('foreignFunc2');
         });
     });
@@ -257,14 +258,14 @@ describe('Foreign Task Suite', function(){
 
 describe('Queue & Cargo Suite', function(){
     it('should queue tasks', function() {
-        TaskManager.do('foreign', {}, ['HelloWorld']);
+        TaskManager.do('foreign', 'HelloWorld');
         expect(TaskManager.cargo.length()).to.be.gte(1);
     });
     it('should queue tasks in parallel', function() {
         // Queue 5 times
         var i = 0;
         for(i=0; i<5; i++) {
-            TaskManager.do('foreign', {}, ['HelloWorld']);
+            TaskManager.do('foreign', 'HelloWorld');
         }
         expect(TaskManager.cargo.length()).to.be.gte(5);
     });
@@ -275,7 +276,7 @@ describe('Queue & Cargo Suite', function(){
         // Queue 5000 times
         var i = 0;
         for(i=0; i<5000; i++) {
-            TaskManager.do('foreign', {}, ['HelloWorld']);
+            TaskManager.do('foreign', 'HelloWorld');
         }
         expect(TaskManager.cargo.length()).to.be.gte(5000);
         TaskManager.cargo.drain = function(){
@@ -293,7 +294,7 @@ describe('Queue & Cargo Suite', function(){
         // Queue 30 times
         var i = 0;
         for(i=0; i<30; i++) {
-            TaskManager.do('foreign', {}, ['HelloWorld']);
+            TaskManager.do('foreign', 'HelloWorld');
         }
         expect(saturated).to.be.equal(true);
         var c = 0;
@@ -307,20 +308,21 @@ describe('Queue & Cargo Suite', function(){
         // Increase test timeout
         this.timeout(5000);
         // Set timeout
-        TaskManager.timeout(500);
-        expect(TaskManager.timeout()).to.be.equal(500);
-        TaskManager.addForeignAdvanced('foreignDelayed', ftasks.t4delayed, {}, 0, SuperTask.ST_UNRESTRICTED, function(error, task) {
+        TaskManager.timeout(100);
+        expect(TaskManager.timeout()).to.be.equal(100);
+        TaskManager.addForeign('foreignDelayed', ftasks.t4delayed, function(error, task) {
             if(error) throw error;
+            task.permission(SuperTask.ST_MINIMAL);
             // Clog the cargo
             TaskManager.cargo.payload = 10;
             for(var i=0; i<10; i++) {
                 TaskManager.do('foreignDelayed');
             }
             setImmediate(function(){
-                TaskManager.do('foreignFunc', {}, [], function(){
+                TaskManager.do('foreignFunc', function(){
                     done();
                 });
-                TaskManager.timeout(1500);
+                TaskManager.timeout(1000);
             });
         });
     });
@@ -329,10 +331,11 @@ describe('Queue & Cargo Suite', function(){
 describe('Permission & Context Suite', function(){
     /* Add More Tests */
     it('should contain the context with respect to permissions', function(done) {
-        TaskManager.addForeignAdvanced('foreignT3', ftasks.t3, {}, 0, SuperTask.ST_UNRESTRICTED, function(error, task) {
+        TaskManager.addForeign('foreignT3', ftasks.t3, function(error, task) {
             if(error) throw error;
-            expect(task).to.have.property('sandboxed');
-            TaskManager.do('foreignT3', {}, [], function(error, time) {
+            task.permission(SuperTask.ST_UNRESTRICTED);
+            expect(task.model).to.have.property('sandboxed');
+            TaskManager.do('foreignT3', function(error, time) {
                 expect(time).to.be.an('array');
                 expect(time).to.have.length(2);
                 done();
@@ -340,10 +343,11 @@ describe('Permission & Context Suite', function(){
         });
     });
     it('should restrict the context', function(done) {
-        TaskManager.addForeignAdvanced('foreignT3C', ftasks.t3, {}, 0, SuperTask.ST_RESTRICTED, function(error, task) {
+        TaskManager.addForeign('foreignT3C', ftasks.t3, function(error, task) {
             if(error) throw error;
-            expect(task).to.have.property('sandboxed');
-            TaskManager.do('foreignT3C', {}, [], function(error, time) {
+            task.permission(SuperTask.ST_RESTRICTED);
+            expect(task.model).to.have.property('sandboxed', true);
+            TaskManager.do('foreignT3C', function(error, time) {
                 expect(error.message).to.have.string('process is not defined');
                 done();
             });

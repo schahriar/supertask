@@ -17,10 +17,10 @@ var ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
 var ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 ///
 // No Operation function
-function noop(){ return null; }
+function noop() { return null; }
 
 var SuperTask = function ST_INIT(strict) {
-    this.cargo = async.cargo(this._next, 50);
+    this.cargo = async.cargo(this._next.bind(this._timeout), 50);
     this._batch = [];
     this._paused = true;
     this._busy = false;
@@ -34,7 +34,7 @@ SuperTask.prototype._createTask = TaskModel;
 SuperTask.prototype._extendContextFromPermissions = ContextPermissions;
 
 SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
-    var timeout_duration = this._timeout;
+    var timeout_duration = this;
     /* At this point the source is fully compiled
     /* to a function or a function is resupplied
     /* from cache to be executed. Here we transfer
@@ -63,9 +63,9 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
         // Timeout Tracker
         function ST__CARGO_COMPLETE(isComplete) {
             // Timedout previously, we won't call done twice
-            if(ST__CARGO_TIMEDOUT) return;
+            if (ST__CARGO_TIMEDOUT) return;
             // Timeout
-            if(!isComplete) ST__CARGO_TIMEDOUT = true;
+            if (!isComplete) ST__CARGO_TIMEDOUT = true;
             // Clear previous timeout
             clearTimeout(ST__CARGO_TIME);
             // Indicate that the queue is free to proceed
@@ -83,16 +83,16 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
         // Push Callback to args
         task.args.push(ST__CARGO_TRACKER);
         // Call Function with context & args
-        if(task.sandboxed) {
+        if (task.sandboxed) {
             try {
                 task.func.apply(task.context, task.args);
-            }catch(error) {
+            } catch (error) {
                 ST__CARGO_TRACKER(error);
             }
-        }else{
+        } else {
             task.func.apply(task.context, task.args);
         }
-        
+
     }, callback);
 };
 
@@ -102,19 +102,19 @@ SuperTask.prototype._newCargo = function ST__CARGO_ADD(CargoTask) {
     this.cargo.resume();
 };
 
-SuperTask.prototype._addTask = function ST__ADD_TASK() {
-    var args = Array.prototype.slice.call(arguments);
-    var name = args.shift();
-    var callback = (typeof args[args.length-1] === 'function')?args.pop():noop;
+SuperTask.prototype._addTask = function ST__ADD_TASK(name, func, type, callback) {
+    if (typeof callback !== 'function') callback = noop;
     
     // Make sure Map Key is not taken
     if (this.map.has(name)) {
         return callback(new Error('Enable to create new task. A Task with the given name already exists.'));
     }
-
-    var task = this._createTask.apply(this, args);
-    // Add Task to Map
-    this.map.set(name, task);
+    
+    // Add ST_DO function to the back with current context
+    // & Create task
+    var task = this._createTask.apply(this, [this.do.bind(this), name, func, type]);
+    // Add Task's model to Map
+    this.map.set(name, task.model);
 
     callback(null, task);
 };
@@ -130,7 +130,7 @@ SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
         return new Error("Unknown Error Occurred. Function property of Task is invalid or failed to compile.");
     }
     // Define module.exports and exports in context
-    if(!context) context = {};
+    if (!context) context = {};
     context.module = {};
     context.exports = context.module.exports = {};
     
@@ -138,7 +138,7 @@ SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
     vm.createContext(context);
     // Run Compiled Script
     task.func.runInContext(context);
-    
+
     if (task.module) {
         // Make sure module.exports is set to a function
         // after script is run. Similar to how require(...)
@@ -148,35 +148,26 @@ SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
             task.func = context.module.exports;
             // Set isCompiled property to prevent recompilation
             task.isCompiled = true;
-            
+
             return task.func;
-        }else{
+        } else {
             return new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function.");
         }
-    }else{
+    } else {
         return task.func;
     }
 };
 
 SuperTask.prototype.timeout = function ST_GETSET_TIMEOUT(duration) {
-    if(duration) this._timeout = duration;
+    if (duration) this._timeout = duration;
     else return this._timeout;
 };
 
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
-    this._addTask(name, func, ST_LOCAL_TYPE, callback);
+    return this._addTask(name, func, ST_LOCAL_TYPE, callback);
 };
-
-SuperTask.prototype.addLocalAdvanced = function ST_ADD_LOCAL_ADVANCED(name, func, context, priority, permissions, callback) {
-    this._addTask(name, func, ST_LOCAL_TYPE, permissions, priority, context, callback);
-};
-
 SuperTask.prototype.addShared = function ST_ADD_SHARED(name, func, callback) {
-    this._addTask(name, func, ST_SHARED_TYPE, callback);
-};
-
-SuperTask.prototype.addSharedAdvanced = function ST_ADD_SHARED_ADVANCED(name, func, context, priority, permissions, callback) {
-    this._addTask(name, func, ST_SHARED_TYPE, permissions, priority, context, callback);
+    return this._addTask(name, func, ST_SHARED_TYPE, callback);
 };
 
 SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback) {
@@ -185,26 +176,17 @@ SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback)
     if (typeof source === 'function') {
         source = 'module.exports = ' + source.toString();
     }
-    this._addTask(name, source, ST_FOREIGN_TYPE, callback);
-};
-
-SuperTask.prototype.addForeignAdvanced = function ST_ADD_FOREIGN_ADVANCED(name, source, context, priority, permissions, callback) {
-    // VM requires a String source to compile
-    // If given source is a function convert it to source (context is lost)
-    if (typeof source === 'function') {
-        source = 'module.exports = ' + source.toString();
-    }
-    this._addTask(name, source, ST_FOREIGN_TYPE, permissions, priority, context, callback);
+    return this._addTask(name, source, ST_FOREIGN_TYPE, callback);
 };
 
 SuperTask.prototype.do = function ST_DO() {
     var args = Array.prototype.slice.call(arguments);
     var name = args.shift();
-    var callback = (typeof args[args.length-1] === 'function')?args.pop():null;
+    var callback = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
     // Check for callback
     // Note that we only throw if strict is set to true
     if ((typeof callback !== 'function') && (this.strict === true)) throw new Error("A callback is required to execute a task. Pass a noop function if errors are intended to be ignored.");
-    else if(typeof callback !== 'function') {
+    else if (typeof callback !== 'function') {
         callback = noop;
     }
     
@@ -213,7 +195,7 @@ SuperTask.prototype.do = function ST_DO() {
         callback(new Error('Task not found!'));
         return;
     }
-    
+
     var task = this.map.get(name);
     // Set Context to task's default
     var context = task.defaultContext;
@@ -261,9 +243,9 @@ SuperTask.prototype.do = function ST_DO() {
     // Compile task if it is in source form
     if (typeof task.func !== 'function') {
         var result = this._compile(task, context);
-        if(typeof result === 'function') CargoTask.func = result;
-        else if(result === true) return callback();
-        else if(typeof result === 'object') return callback(result);
+        if (typeof result === 'function') CargoTask.func = result;
+        else if (result === true) return callback();
+        else if (typeof result === 'object') return callback(result);
         else return callback(new Error("Unknown error occurred. Failed to compile and execution was halted."));
     }
     // Push to Cargo
@@ -290,12 +272,12 @@ SuperTask.ST_MINIMAL = ST_MINIMAL;
 SuperTask.ST_UNRESTRICTED = ST_UNRESTRICTED;
 
 // Extend Flags
-for(var fkey in Optimizer.flags) {
-    if(!SuperTask[fkey]) SuperTask[fkey] = Optimizer.flags[fkey];
+for (var fkey in Optimizer.flags) {
+    if (!SuperTask[fkey]) SuperTask[fkey] = Optimizer.flags[fkey];
 }
 // Extend Levels
-for(var lkey in Optimizer.levels) {
-    if(!SuperTask[lkey]) SuperTask[lkey] = Optimizer.levels[lkey];
+for (var lkey in Optimizer.levels) {
+    if (!SuperTask[lkey]) SuperTask[lkey] = Optimizer.levels[lkey];
 }
 ///
 
