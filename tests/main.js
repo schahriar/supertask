@@ -338,6 +338,25 @@ describe('Task Model Suite', function() {
             done();
         });
     });
+    it('should set/unset permissions', function(done) {
+        TaskManager.addLocal('localMFuncP1', pow2, function(error, task) {
+            expect(task).to.have.property('model');
+            expect(task.permission()).to.be.equal(SuperTask.ST_NONE);
+            task.permission(SuperTask.ST_MINIMAL);
+            expect(task.permission()).to.be.equal(SuperTask.ST_MINIMAL);
+            done();
+        });
+    });
+    it('should set/unset context', function(done) {
+        TaskManager.addLocal('localMFuncC1', pow2, function(error, task) {
+            var m = { test: true, a: 4 };
+            expect(task).to.have.property('model');
+            expect(task.context()).to.be.eql({});
+            task.context(m);
+            expect(task.context()).to.be.eql(m);
+            done();
+        });
+    });
     it('should set priority', function(done) {
         TaskManager.addLocal('localMFuncP', pow2, function(error, task) {
             expect(task).to.have.property('model');
@@ -347,7 +366,7 @@ describe('Task Model Suite', function() {
             done();
         });
     });
-    it('should set/unset sanbox', function(done) {
+    it('should set/unset sandbox', function(done) {
         TaskManager.addLocal('localMFuncS', pow2, function(error, task) {
             expect(task).to.have.property('model');
             expect(task.sandbox()).to.be.equal(false);
