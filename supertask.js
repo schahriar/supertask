@@ -85,9 +85,10 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
         task.args.push(ST__CARGO_TRACKER);
         // If task is shared call handler
         if (task.shared && task.handler) {
-            // Prepend task func to arguments
-            task.args.unshift(task.func);
-            task.handler.apply(task.context, task.args);
+            // Assign task name to argument[0] followed by context
+            task.args.unshift(task.context);
+            task.args.unshift(task.name);
+            task.handler.apply(null, task.args);
         }else{
             // Call local/remote Function with context & args
             if (task.sandboxed) {

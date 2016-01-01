@@ -131,7 +131,7 @@ describe('Basic Test Suite', function(){
         var called = false;
         TaskManager.addShared('testSharedAdvanced', function(callback) {
             callback(null, this.test);
-        }, function(func, callback) { called = true; func(callback); }, function(error, task) {
+        }, function(name, context, callback) { called = true; TaskManager.get(name).model.func.apply(context, [callback]); }, function(error, task) {
             if(error) throw error;
             task.context({ test: 'advanced' });
             task.permission(SuperTask.ST_NONE);
