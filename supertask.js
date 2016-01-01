@@ -83,15 +83,22 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
         task.pre();
         // Push Callback to args
         task.args.push(ST__CARGO_TRACKER);
-        // Call local/remote Function with context & args
-        if (task.sandboxed) {
-            try {
+        // If task is shared call handler
+        if (task.shared && task.handler) {
+            // Prepend task func to arguments
+            task.args.unshift(task.func);
+            task.handler.apply(task.context, task.args);
+        }else{
+            // Call local/remote Function with context & args
+            if (task.sandboxed) {
+                try {
+                    task.func.apply(task.context, task.args);
+                } catch (error) {
+                    ST__CARGO_TRACKER(error);
+                }
+            } else {
                 task.func.apply(task.context, task.args);
-            } catch (error) {
-                ST__CARGO_TRACKER(error);
             }
-        } else {
-            task.func.apply(task.context, task.args);
         }
     }, callback);
 };
@@ -102,7 +109,7 @@ SuperTask.prototype._newCargo = function ST__CARGO_ADD(CargoTask) {
     this.cargo.resume();
 };
 
-SuperTask.prototype._addTask = function ST__ADD_TASK(name, func, type, callback) {
+SuperTask.prototype._addTask = function ST__ADD_TASK(name, func, handler, type, callback) {
     if (typeof callback !== 'function') callback = noop;
     
     // Make sure Map Key is not taken
@@ -112,7 +119,7 @@ SuperTask.prototype._addTask = function ST__ADD_TASK(name, func, type, callback)
     
     // Add ST_DO function to the back with current context
     // & Create task
-    var task = this._createTask(this.do.bind(this), name, func, type);
+    var task = this._createTask(this.do.bind(this), name, func, handler, type);
     // Add Task's model to Map
     this.map.set(name, task.model);
 
@@ -164,10 +171,15 @@ SuperTask.prototype.timeout = function ST_GETSET_TIMEOUT(duration) {
 };
 
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
-    return this._addTask(name, func, ST_LOCAL_TYPE, callback);
+    return this._addTask(name, func, null, ST_LOCAL_TYPE, callback);
 };
-SuperTask.prototype.addShared = function ST_ADD_SHARED(name, func, callback) {
-    return this._addTask(name, func, ST_SHARED_TYPE, callback);
+SuperTask.prototype.addShared = function ST_ADD_SHARED(name, source, handler, callback) {
+    // VM requires a String source to compile
+    // If given source is a function convert it to source (context is lost)
+    if (typeof source === 'function') {
+        source = 'module.exports = ' + source.toString();
+    }
+    return this._addTask(name, source, handler, ST_SHARED_TYPE, callback);
 };
 
 SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback) {
@@ -176,11 +188,11 @@ SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback)
     if (typeof source === 'function') {
         source = 'module.exports = ' + source.toString();
     }
-    return this._addTask(name, source, ST_FOREIGN_TYPE, callback);
+    return this._addTask(name, source, null, ST_FOREIGN_TYPE, callback);
 };
 
 SuperTask.prototype.addRemote = function ST_ADD_REMOTE(name, handler, callback) {
-    this._addTask(name, handler, ST_FOREIGN_TYPE, function ST_REMOTE_CREATOR(error, task) {
+    this._addTask(name, handler, null, ST_FOREIGN_TYPE, function ST_REMOTE_CREATOR(error, task) {
         if(error) return callback(error);
         // Attach handler
         task.remote(true, handler);
@@ -240,10 +252,12 @@ SuperTask.prototype.do = function ST_DO() {
     var CargoTask = {};
     CargoTask.name = name;
     CargoTask.func = task.func;
+    CargoTask.handler = task.handler;
     CargoTask.sandboxed = task.sandboxed;
     CargoTask.averageExecutionTime = task.averageExecutionTime;
     CargoTask.executionRounds = task.executionRounds;
     CargoTask.local = task.local;
+    CargoTask.shared = task.shared;
     CargoTask.context = context;
     CargoTask.args = args;
     CargoTask.pre = preTracker;

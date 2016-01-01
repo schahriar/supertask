@@ -120,24 +120,24 @@ describe('Basic Test Suite', function(){
     });
     it('should add a shared task', function(done) {
         TaskManager.addShared('testShared', function(callback) {
-            exec++;
             callback(null, 'hey');
-        }, function(error, task) {
+        }, noop, function(error, task) {
             if(error) throw error;
             expect(task.model).to.have.property('shared', true);
             done();
         });
     });
     it('should run a shared task', function(done) {
+        var called = false;
         TaskManager.addShared('testSharedAdvanced', function(callback) {
-            exec++;
             callback(null, this.test);
-        }, function(error, task) {
+        }, function(func, callback) { called = true; func(callback); }, function(error, task) {
             if(error) throw error;
             task.context({ test: 'advanced' });
             task.permission(SuperTask.ST_NONE);
             TaskManager.do('testSharedAdvanced', function(error, test){
                 expect(test).to.be.equal('advanced');
+                expect(called).to.be.equal(true);
                 done();
             });
         });
