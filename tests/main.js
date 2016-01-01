@@ -328,6 +328,75 @@ describe('Queue & Cargo Suite', function(){
     });
 });
 
+describe('Task Model Suite', function() {
+    function pow2(n, cb) { cb(null, n*n, this); }
+    // permission context priority sandbox module remote call apply
+    it('should construct a proper model and underlying prototypes', function(done) {
+        TaskManager.addLocal('localMFunc', pow2, function(error, task) {
+            expect(task).to.have.property('model');
+            expect(task.model).to.have.property('func', pow2);
+            done();
+        });
+    });
+    it('should set priority', function(done) {
+        TaskManager.addLocal('localMFuncP', pow2, function(error, task) {
+            expect(task).to.have.property('model');
+            expect(task.priority()).to.be.equal(-1);
+            task.priority(10);
+            expect(task.priority()).to.be.equal(10);
+            done();
+        });
+    });
+    it('should set/unset sanbox', function(done) {
+        TaskManager.addLocal('localMFuncS', pow2, function(error, task) {
+            expect(task).to.have.property('model');
+            expect(task.sandbox()).to.be.equal(false);
+            task.sandbox(true);
+            expect(task.sandbox()).to.be.equal(true);
+            done();
+        });
+    });
+    it('should set/unset module', function(done) {
+        TaskManager.addLocal('localMFuncM', pow2, function(error, task) {
+            expect(task).to.have.property('model');
+            expect(task.module()).to.be.equal(true);
+            task.module(false);
+            expect(task.module()).to.be.equal(false);
+            done();
+        });
+    });
+    it('should set/unset remote', function(done) {
+        function handler() {}
+        TaskManager.addLocal('localMFuncR', pow2, function(error, task) {
+            expect(task).to.have.property('model');
+            expect(task.remote()).to.be.equal(false);
+            task.remote(true, handler);
+            expect(task.remote()).to.be.equal(true);
+            expect(task.model.remoteHandler).to.be.equal(handler);
+            done();
+        });
+    });
+    it('should call through wrapper', function(done) {
+        TaskManager.addLocal('localMFuncC', pow2, function(error, task) {
+            expect(task).to.have.property('model');
+            task.call(2, function(error, result) {
+                expect(result).to.be.equal(4);
+                done();
+            });
+        });
+    });
+    it('should apply through wrapper', function(done) {
+        TaskManager.addLocal('localMFuncA', pow2, function(error, task) {
+            expect(task).to.have.property('model');
+            task.apply({ test: 'applied'}, [2], function(error, result, r2) {
+                expect(result).to.be.equal(4);
+                expect(r2).to.have.property('test', 'applied');
+                done();
+            });
+        });
+    });
+});
+
 describe('Permission & Context Suite', function(){
     /* Add More Tests */
     it('should contain the context with respect to permissions', function(done) {
