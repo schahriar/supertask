@@ -197,7 +197,10 @@ SuperTask.prototype.addForeignAdvanced = function ST_ADD_FOREIGN_ADVANCED(name, 
     this._addTask(name, source, ST_FOREIGN_TYPE, permissions, priority, context, callback);
 };
 
-SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
+SuperTask.prototype.do = function ST_DO() {
+    var args = Array.prototype.slice.call(arguments);
+    var name = args.shift();
+    var callback = (typeof args[args.length-1] === 'function')?args.pop():null;
     // Check for callback
     // Note that we only throw if strict is set to true
     if ((typeof callback !== 'function') && (this.strict === true)) throw new Error("A callback is required to execute a task. Pass a noop function if errors are intended to be ignored.");
@@ -212,8 +215,8 @@ SuperTask.prototype.do = function ST_DO(name, context, args, callback) {
     }
     
     var task = this.map.get(name);
-    // Combine Contexts
-    if (task.defaultContext && (Object.keys(task.defaultContext).length !== 0)) context = defaultsDeep(task.defaultContext, context || {});
+    // Set Context to task's default
+    var context = task.defaultContext;
     // Combine Permissions Context (SLOWS DOWN EXECUTION)
     if ((task.access) && (task.access !== ST_NONE)) {
         context = this._extendContextFromPermissions(context || {}, task.access);
