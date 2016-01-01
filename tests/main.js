@@ -142,6 +142,29 @@ describe('Basic Test Suite', function(){
             });
         });
     });
+    it('should add a remote task', function(done) {
+        TaskManager.addRemote('testRemote', function HANDLER(callback) {
+            // Do some network I/O
+            // e.g. run task in cluster
+            callback(null, 'hey');
+        }, function(error, task) {
+            if(error) throw error;
+            expect(task.model).to.have.property('isRemote', true);
+            done();
+        });
+    });
+    it('should run a remote task', function(done) {
+        TaskManager.do('testRemote', function(error, result) {
+            expect(result).to.be.equal('hey');
+            done();
+        });
+    });
+    it('should get a task', function(done) {
+        TaskManager.get('testRemote', function(error, task) {
+            expect(task.model.name).to.equal('testRemote');
+            done();
+        });
+    });
     it('should calculate average execution time', function(done) {
         TaskManager.do('test', function(error, result) {
             if(error) throw error;
@@ -391,7 +414,7 @@ describe('Task Model Suite', function() {
             expect(task.remote()).to.be.equal(false);
             task.remote(true, handler);
             expect(task.remote()).to.be.equal(true);
-            expect(task.model.remoteHandler).to.be.equal(handler);
+            expect(task.model.func).to.be.equal(handler);
             done();
         });
     });

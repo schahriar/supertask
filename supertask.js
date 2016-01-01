@@ -29,7 +29,8 @@ var SuperTask = function ST_INIT(strict) {
     this.strict = (!!strict);
 };
 
-SuperTask.prototype._createTask = TaskModel;
+SuperTask.prototype._createTask = TaskModel.create;
+SuperTask.prototype._wrapTask = TaskModel.wrap;
 
 SuperTask.prototype._extendContextFromPermissions = ContextPermissions;
 
@@ -82,7 +83,7 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
         task.pre();
         // Push Callback to args
         task.args.push(ST__CARGO_TRACKER);
-        // Call Function with context & args
+        // Call local/remote Function with context & args
         if (task.sandboxed) {
             try {
                 task.func.apply(task.context, task.args);
@@ -92,7 +93,6 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
         } else {
             task.func.apply(task.context, task.args);
         }
-
     }, callback);
 };
 
@@ -179,6 +179,16 @@ SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback)
     return this._addTask(name, source, ST_FOREIGN_TYPE, callback);
 };
 
+SuperTask.prototype.addRemote = function ST_ADD_REMOTE(name, handler, callback) {
+    this._addTask(name, handler, ST_FOREIGN_TYPE, function ST_REMOTE_CREATOR(error, task) {
+        if(error) return callback(error);
+        // Attach handler
+        task.remote(true, handler);
+        
+        callback(error, task);
+    });
+};
+
 SuperTask.prototype.do = function ST_DO() {
     var args = Array.prototype.slice.call(arguments);
     var name = args.shift();
@@ -259,6 +269,11 @@ SuperTask.prototype.remove = function ST_REMOVE(name, callback) {
 
 SuperTask.prototype.has = function ST_HAS(name, callback) {
     callback(null, (!!this.map.has(name)));
+};
+
+SuperTask.prototype.get = function ST_GET(name, callback) {
+    if(!this.map.has(name)) return callback(new Error('Task not found!'));
+    callback(null, this._wrapTask(this.do.bind(this), this.map.get(name)));
 };
 
 /// EXTEND PREDEFINED VARS
