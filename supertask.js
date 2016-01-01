@@ -112,7 +112,7 @@ SuperTask.prototype._addTask = function ST__ADD_TASK(name, func, type, callback)
     
     // Add ST_DO function to the back with current context
     // & Create task
-    var task = this._createTask.apply(this, [this.do.bind(this), name, func, type]);
+    var task = this._createTask(this.do.bind(this), name, func, type);
     // Add Task's model to Map
     this.map.set(name, task.model);
 
