@@ -139,7 +139,7 @@ SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
     // Run Compiled Script
     task.func.runInContext(context);
 
-    if (task.module) {
+    if (task.isModule) {
         // Make sure module.exports is set to a function
         // after script is run. Similar to how require(...)
         // modules work.
