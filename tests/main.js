@@ -159,11 +159,8 @@ describe('Basic Test Suite', function(){
             done();
         });
     });
-    it('should get a task', function(done) {
-        TaskManager.get('testRemote', function(error, task) {
-            expect(task.model.name).to.equal('testRemote');
-            done();
-        });
+    it('should get a task', function() {
+        expect(TaskManager.get('testRemote').model.name).to.equal('testRemote');
     });
     it('should calculate average execution time', function(done) {
         TaskManager.do('test', function(error, result) {
@@ -193,22 +190,14 @@ describe('Basic Test Suite', function(){
             done();
         });
     });
-    it('should check if task exists on has call', function(done) {
-       TaskManager.has('test', function(error, has) {
-           if(error) throw error;
-           expect(has).to.be.equal(true);
-           done();
-       });
+    it('should check if task exists on has call', function() {
+       var has = TaskManager.has('test');
+       expect(has).to.be.equal(true);
     });
-    it('should remove given task', function(done) {
-        TaskManager.remove('test', function(error) {
-            if(error) throw error;
-            TaskManager.has('test', function(error, has) {
-                if(error) throw error;
-                expect(has).to.be.equal(false);
-                done();
-            });
-        });
+    it('should remove given task', function() {
+        expect(TaskManager.has('test')).to.be.equal(true);
+        TaskManager.remove('test');
+        expect(TaskManager.has('test')).to.be.equal(false);
     });
     it('should contain optimization flags', function (){
         expect(SuperTask).to.have.property('ST_O0');

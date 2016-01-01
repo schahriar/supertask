@@ -278,16 +278,15 @@ SuperTask.prototype.do = function ST_DO() {
 
 SuperTask.prototype.remove = function ST_REMOVE(name, callback) {
     var result = this.map.delete(name);
-    callback((!result) ? (new Error('Task not found!')) : null);
+    return ((!result) ? (new Error('Task not found!')) : null);
 };
 
 SuperTask.prototype.has = function ST_HAS(name, callback) {
-    callback(null, (!!this.map.has(name)));
+    return !!this.map.has(name);
 };
 
 SuperTask.prototype.get = function ST_GET(name, callback) {
-    if(!this.map.has(name)) return callback(new Error('Task not found!'));
-    callback(null, this._wrapTask(this.do.bind(this), this.map.get(name)));
+    return this._wrapTask(this.do.bind(this), this.map.get(name));
 };
 
 /// EXTEND PREDEFINED VARS
