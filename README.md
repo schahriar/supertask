@@ -4,7 +4,7 @@
 
 ## Supertask is a NodeJS task queue designed for parallel and cluster execution with optimizations.
 
-**Supertask** was designed to run tasks in parallel and enable for a connected interface to distribute tasks across a network or cluster. A task can either be a local JavaScript function or in form of source which is then compiled and sandboxed through the VM.
+**Supertask** was designed to run tasks in parallel and enable for a connected interface to distribute tasks across a network or cluster. A task can either be a local JavaScript function or in form of source which is then compiled and sandboxed through the VM. To get a clear idea of the intended use, check out [Supertask-cluster](https://github.com/schahriar/supertask-cluster) a superset of this module still in development that automatically runs and handles tasks on a NodeJS cluster of Workers. (one per CPU core)
 
 # Installation
 Note that Supertask requires *ES6* and is designed to run on NodeJS 4.x and above.
@@ -57,6 +57,8 @@ TaskManager.addRemote('foreignPow', handler, function callback(error, task) {
 
 More documentation and methods coming soon. Check out the test functions for more information in the mean time.
 
+## Disclaimer
+This module is not *yet* ready to be used in a production environment. While Supertask has reasonably good stability with over 40 tests it does not fully expose all methods and capabilities and may not function as intended. Supertask-cluster is equally missing some important cluster monitoring methods to keep the cluster alive and well in a production environment. Use it at your own risk.
 
 ## License
 MIT © Schahriar SaffarShargh <info@schahriar.com>
