@@ -1,6 +1,6 @@
 {
   "name": "supertask",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A task & queue environment ideal for distributed computing and execution",
   "main": "supertask.js",
   "scripts": {
