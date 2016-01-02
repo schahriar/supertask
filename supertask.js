@@ -1,5 +1,7 @@
 /// Required Core Modules
 var vm = require('vm');
+var eventEmmiter = require('events').EventEmitter;
+var util = require('util');
 ///
 /// External Modules
 var async = require('async');
@@ -27,7 +29,11 @@ var SuperTask = function ST_INIT(strict) {
     this._timeout = 1000;
     this.map = new Map();
     this.strict = (!!strict);
+    
+    eventEmmiter.call(this);
 };
+
+util.inherits(SuperTask, eventEmmiter);
 
 SuperTask.prototype._createTask = TaskModel.create;
 SuperTask.prototype._wrapTask = TaskModel.wrap;
