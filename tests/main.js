@@ -426,6 +426,14 @@ describe('Task Model Suite', function() {
             });
         });
     });
+    it('should precompile through wrapper', function(done) {
+        TaskManager.addLocal('localMFuncPC', pow2, function(error, task) {
+            expect(task).to.have.property('model');
+            task.precompile({ test: 'applied'});
+            expect(task.model.isCompiled).to.be.equal(true);
+            done();
+        });
+    });
 });
 
 describe('Permission & Context Suite', function(){

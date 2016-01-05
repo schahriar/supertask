@@ -126,7 +126,7 @@ SuperTask.prototype._addTask = function ST__ADD_TASK(name, func, handler, type, 
     
     // Add ST_DO function to the back with current context
     // & Create task
-    var task = this._createTask(this.do.bind(this), name, func, handler, type);
+    var task = this._createTask(this, name, func, handler, type);
     // Add Task's model to Map
     this.map.set(name, task.model);
 
@@ -293,7 +293,7 @@ SuperTask.prototype.has = function ST_HAS(name, callback) {
 };
 
 SuperTask.prototype.get = function ST_GET(name, callback) {
-    return this._wrapTask(this.do.bind(this), this.map.get(name));
+    return this._wrapTask(this, this.map.get(name));
 };
 
 /// EXTEND PREDEFINED VARS
