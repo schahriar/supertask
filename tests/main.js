@@ -282,15 +282,15 @@ describe('Queue & Cargo Suite', function(){
         expect(TaskManager.cargo.length()).to.be.gte(5);
     });
     it('should handle large parallel tasks', function(done) {
-        this.timeout(10000);
-        // Set max parallel to 5000
+        this.timeout(20000);
+        // Set max parallel to 100k
         TaskManager.cargo.payload = 5000;
-        // Queue 5000 times
+        // Queue 100000 times
         var i = 0;
-        for(i=0; i<5000; i++) {
+        for(i=0; i<100000; i++) {
             TaskManager.do('foreign', 'HelloWorld');
         }
-        expect(TaskManager.cargo.length()).to.be.gte(5000);
+        expect(TaskManager.cargo.length()).to.be.gte(100000);
         TaskManager.cargo.drain = function(){
             done();
             // Reset
