@@ -22,7 +22,7 @@ var ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 function noop() { return null; }
 
 var SuperTask = function ST_INIT(strict) {
-    this.cargo = async.cargo(this._next.bind(this._timeout), 50);
+    this.cargo = async.cargo(this._next.bind(this._timeout), 1000);
     this._batch = [];
     this._paused = true;
     this._busy = false;
@@ -47,7 +47,7 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
     /* from cache to be executed. Here we transfer
     /* the given function (task.func) to the cargo
     /* after attaching the pre tracker */
-    
+
     // Optimize Tasks
     tasks = Optimizer.optimize(tasks);
     
