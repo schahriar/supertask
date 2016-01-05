@@ -7,7 +7,8 @@
     "pretest": "mocha ./tests/main.js",
     "test": "mocha coverage.js -R mocha-lcov-reporter > lcov.info",
     "posttest": "codeclimate-test-reporter < lcov.info",
-    "localtest": "mocha ./tests/main.js"
+    "localtest": "mocha ./tests/main.js",
+    "benchmark": "mocha ./tests/benchmark.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "blanket": "^1.2.1",
     "chai": "^3.4.1",
+    "chalk": "^1.1.1",
     "codeclimate-test-reporter": "^0.1.1",
     "mocha": "^2.3.4",
     "mocha-lcov-reporter": "^1.0.0"
