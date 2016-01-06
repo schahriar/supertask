@@ -22,13 +22,19 @@ var ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 function noop() { return null; }
 
 var SuperTask = function ST_INIT(strict) {
-    this.cargo = async.cargo(this._next.bind(this._timeout), 1000);
     this._batch = [];
     this._paused = true;
     this._busy = false;
     this._timeout = 1000;
     this.map = new Map();
     this.strict = (!!strict);
+    this.O_MASK = null;
+    this.O_LEVEL = Optimizer.levels.ST_O2;
+    this.cargo = async.cargo(this._next.bind({
+        mask: this.O_MASK,
+        level: this.O_LEVEL,
+        timeout: this._timeout
+    }), 1000);
     
     eventEmmiter.call(this);
 };
@@ -41,7 +47,7 @@ SuperTask.prototype._wrapTask = TaskModel.wrap;
 SuperTask.prototype._extendContextFromPermissions = ContextPermissions;
 
 SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
-    var timeout_duration = this;
+    var timeout_duration = this.timeout;
     /* At this point the source is fully compiled
     /* to a function or a function is resupplied
     /* from cache to be executed. Here we transfer
@@ -49,7 +55,7 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
     /* after attaching the pre tracker */
 
     // Optimize Tasks
-    tasks = Optimizer.optimize(tasks);
+    tasks = Optimizer.optimize(tasks, this.level, this.mask);
     
     // Go through tasks in parallel
     async.each(tasks, function ST__CARGO_EACH(task, done) {
@@ -172,6 +178,14 @@ SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
     }
 };
 
+SuperTask.prototype.setOptimization = function ST_SET_OPTIMIZATION(O_LEVEL) {
+    this.O_LEVEL = O_LEVEL;
+};
+
+SuperTask.prototype.setFlags = function ST_SET_FLAGS(O_MASK) {
+    this.O_MASK = O_MASK;
+};
+
 SuperTask.prototype.timeout = function ST_GETSET_TIMEOUT(duration) {
     if (duration) this._timeout = duration;
     else return this._timeout;
@@ -180,6 +194,7 @@ SuperTask.prototype.timeout = function ST_GETSET_TIMEOUT(duration) {
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
     return this._addTask(name, func, null, ST_LOCAL_TYPE, callback);
 };
+
 SuperTask.prototype.addShared = function ST_ADD_SHARED(name, source, handler, callback) {
     // VM requires a String source to compile
     // If given source is a function convert it to source (context is lost)
