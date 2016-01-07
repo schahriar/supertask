@@ -231,7 +231,7 @@ UNSAFE, All permissions. Copies global scope.
 
 <a name="SuperTask.ST_O_AET_ASC"></a>
 ### SuperTask.ST_O_AET_ASC
-Flag to set Average Execution Time (AET) to Ascending see [#SuperTask+setFlags](#SuperTask+setFlags)
+Flag to set Average Execution Time (AET) to Ascending [setFlags](#SuperTask+setFlags)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
@@ -295,7 +295,7 @@ Flag to use QuickSort as the only sorting method. (Slower than default but uses 
 
 <a name="SuperTask.ST_O0"></a>
 ### SuperTask.ST_O0
-Disables optimizations see [#SuperTask+setLevel](#SuperTask+setLevel)
+Disables optimizations see [#SuperTask+setOptimization](#SuperTask+setOptimization)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
@@ -303,7 +303,7 @@ Disables optimizations see [#SuperTask+setLevel](#SuperTask+setLevel)
 
 <a name="SuperTask.ST_O1"></a>
 ### SuperTask.ST_O1
-Enables priority only optimizations see [#SuperTask+setLevel](#SuperTask+setLevel)
+Enables priority only optimizations see [#SuperTask+setOptimization](#SuperTask+setOptimization)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
@@ -311,7 +311,7 @@ Enables priority only optimizations see [#SuperTask+setLevel](#SuperTask+setLeve
 
 <a name="SuperTask.ST_O2"></a>
 ### SuperTask.ST_O2
-Enables AET, ER and priority optimizations see [#SuperTask+setLevel](#SuperTask+setLevel)
+Enables AET, ER and priority optimizations see [#SuperTask+setOptimization](#SuperTask+setOptimization)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
