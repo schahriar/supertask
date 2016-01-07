@@ -21,6 +21,15 @@ var ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 // No Operation function
 function noop() { return null; }
 
+/**
+ * Creates new instance.
+ * @constructor
+ * @example
+ * var SuperTask = require('supertask');
+ * var TaskManager = new SuperTask();
+ * 
+ * @returns {Instance} Returns a new instance of the module.
+ */
 var SuperTask = function ST_INIT(strict) {
     this._batch = [];
     this._paused = true;
@@ -178,32 +187,35 @@ SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
     }
 };
 
-SuperTask.prototype.setOptimization = function ST_SET_OPTIMIZATION(O_LEVEL) {
-    this.O_LEVEL = O_LEVEL;
-};
-
-SuperTask.prototype.setFlags = function ST_SET_FLAGS(O_MASK) {
-    this.O_MASK = O_MASK;
-};
-
-SuperTask.prototype.timeout = function ST_GETSET_TIMEOUT(duration) {
-    if (duration) this._timeout = duration;
-    else return this._timeout;
-};
-
+/**
+ * Creates a new local Task. A local task is a task that is not
+ * shared by any outside entity and usually performs slightly
+ * faster than shared or foreign tasks as there is no compilation
+ * or try/catch involved. 
+ * 
+ * @param {String} name - A unique name for this Task.
+ * @param {Function} taskFunction - The JS function of the Task.
+ * @param {Function} callback - Called once the task is added with
+ * parameters `error` and `task`. 
+ */
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
     return this._addTask(name, func, null, ST_LOCAL_TYPE, callback);
 };
 
-SuperTask.prototype.addShared = function ST_ADD_SHARED(name, source, handler, callback) {
-    // VM requires a String source to compile
-    // If given source is a function convert it to source (context is lost)
-    if (typeof source === 'function') {
-        source = 'module.exports = ' + source.toString();
-    }
-    return this._addTask(name, source, handler, ST_SHARED_TYPE, callback);
-};
-
+/**
+ * Creates a new foreign Task. A local task is a task that is not
+ * shared by any outside entity and usually performs slightly
+ * faster than shared or foreign tasks as there is no compilation
+ * or try/catch involved. 
+ * 
+ * @param {String} name - A unique name for this Task.
+ * @param {Function} taskFunction - The JS function or source with
+ * module.exports to be used as the function. Note that sources are compiled
+ * to a function before use with about a 30ms overhead on the first call unless
+ * precompile method of task is called beforehand.
+ * @param {Function} callback - Called once the task is added with
+ * parameters `error` and `task`. 
+ */
 SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback) {
     // VM requires a String source to compile
     // If given source is a function convert it to source (context is lost)
@@ -211,6 +223,27 @@ SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback)
         source = 'module.exports = ' + source.toString();
     }
     return this._addTask(name, source, null, ST_FOREIGN_TYPE, callback);
+};
+
+/**
+ * Creates a shared Task. By default this is merely a directive
+ * but can be used with a function handler to build shared tasks
+ * on top of this module.
+ * 
+ * @param {String} name - A unique name for this Task.
+ * @param {(String|Function)} taskFunction - The JS function or source with
+ * module.exports to be used as the function.
+ * @param {Function} handler - A function that is called to execute this Task.
+ * @param {Function} callback - Called once the task is added with
+ * parameters `error` and `task`.
+ */
+SuperTask.prototype.addShared = function ST_ADD_SHARED(name, source, handler, callback) {
+    // VM requires a String source to compile
+    // If given source is a function convert it to source (context is lost)
+    if (typeof source === 'function') {
+        source = 'module.exports = ' + source.toString();
+    }
+    return this._addTask(name, source, handler, ST_SHARED_TYPE, callback);
 };
 
 SuperTask.prototype.addRemote = function ST_ADD_REMOTE(name, handler, callback) {
@@ -223,6 +256,17 @@ SuperTask.prototype.addRemote = function ST_ADD_REMOTE(name, handler, callback) 
     });
 };
 
+/**
+ * Run a task with the given arguments
+ * 
+ * @param {...*} arguments - Arguments that are passed to the Task.
+ * You can call this function with any number of arguments so long
+ * as the last argument is the callback.
+ * @param {Function} callback - The callback that handles the response.
+ * Note that the callback parameters are based on what the function calls
+ * the callback with but will include `error` as the first parameter as
+ * per usual NodeJS async calls.
+ */
 SuperTask.prototype.do = function ST_DO() {
     var args = Array.prototype.slice.call(arguments);
     var name = args.shift();
@@ -298,17 +342,86 @@ SuperTask.prototype.do = function ST_DO() {
     this._newCargo(CargoTask);
 };
 
-SuperTask.prototype.remove = function ST_REMOVE(name, callback) {
-    var result = this.map.delete(name);
-    return ((!result) ? (new Error('Task not found!')) : null);
+/**
+ * Remove a task.
+ * 
+ * @param {String} name - Name of the task.
+ * @returns {Boolean} - Returns true if task
+ * existed and was removed or false if task did not exist
+ */
+SuperTask.prototype.remove = function ST_REMOVE(name) {
+    return this.map.delete(name);
 };
 
-SuperTask.prototype.has = function ST_HAS(name, callback) {
+/**
+ * Check if task exists.
+ * 
+ * @param {String} name - Name of the task.
+ * @returns {Boolean} exists
+ */
+SuperTask.prototype.has = function ST_HAS(name) {
     return !!this.map.has(name);
 };
 
-SuperTask.prototype.get = function ST_GET(name, callback) {
+/**
+ * Get a wrapped version of the task.
+ * 
+ * @param {String} name - Name of the task.
+ * @returns {Object} task  
+ */
+SuperTask.prototype.get = function ST_GET(name) {
     return this._wrapTask(this, this.map.get(name));
+};
+
+
+/**
+ * Set Cargo/Queue optimization level used to indicate which properties
+ * are used to sort the order of execution. Optimization levels are
+ * attached to the module as properties. Use {@link SuperTaskCluster#setFlags}
+ * to set order and optimization flags individually.
+ *
+ * @param {Enum} O_LEVEL - Optimization Level
+ * 
+ * @example
+ * var SuperTask = require('supertask');
+ * var TaskManager = new SuperTask();
+ * TaskManager.setOptimization(SuperTask.ST_O0); // No Optimizations
+ * TaskManager.setOptimization(SuperTask.ST_O1); // Sort based on priority
+ * TaskManager.setOptimization(SuperTask.ST_O2); // Additonally Sort based on averageExecutionTime & executionRounds
+ */
+SuperTask.prototype.setOptimization = function ST_SET_OPTIMIZATION(O_LEVEL) {
+    this.O_LEVEL = O_LEVEL;
+};
+
+/**
+ * Set Cargo/Queue optimization flags used to indicate the order of properties.
+ * Optimization flags are attached to the module as properties.
+ *
+ * @param {Enum} O_MASK - Optimization Bitwise Mask
+ * 
+ * @example
+ * var SuperTask = require('supertask');
+ * var TaskManager = new SuperTask();
+ * TaskManager.setFlags(ST_O_PRIORITY_ASC | ST_O_AET_DSC); // Priority Ascendng & (bitwise OR) averageExecutionTime descending
+ */
+SuperTask.prototype.setFlags = function ST_SET_FLAGS(O_MASK) {
+    this.O_MASK = O_MASK;
+};
+
+/**
+ * Sets/Gets timeout value. A timeout indicates the maximum
+ * amount of time that the Cargo/Queue will stop before moving
+ * forward for an async function. This does not halt the
+ * execution but will rather call the callback with a timeout
+ * error.
+ *
+ * @param {Number} [duration] - Timeout duration in m/s (defaults to 1000)
+ * 
+ * @returns {Number} timeout
+ */
+SuperTask.prototype.timeout = function ST_GETSET_TIMEOUT(duration) {
+    if (duration) this._timeout = duration;
+    return this._timeout;
 };
 
 /// EXTEND PREDEFINED VARS
@@ -316,9 +429,15 @@ SuperTask.ST_LOCAL_TYPE = ST_LOCAL_TYPE;
 SuperTask.ST_SHARED_TYPE = ST_SHARED_TYPE;
 SuperTask.ST_FOREIGN_TYPE = ST_FOREIGN_TYPE;
 
+/** No permissions. Code runs JS only. */
 SuperTask.ST_NONE = ST_NONE;
+/** Some permissions. Allows streams, Buffer, setTimeout, setInterval only */
 SuperTask.ST_RESTRICTED = ST_RESTRICTED;
+/** Minimal permissions. Allows all restricted permissions and __dirname, __filename, console globals.
+ * Includes a limited require('*') function with access to 'http', 'https', 'util', 'os', 'path', 'events', 'stream', 'string_decoder', 'url', 'zlib'
+ */
 SuperTask.ST_MINIMAL = ST_MINIMAL;
+/** UNSAFE, All permissions. Copies global scope. */
 SuperTask.ST_UNRESTRICTED = ST_UNRESTRICTED;
 
 // Extend Flags
