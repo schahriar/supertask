@@ -377,7 +377,7 @@ SuperTask.prototype.get = function ST_GET(name) {
 /**
  * Set Cargo/Queue optimization level used to indicate which properties
  * are used to sort the order of execution. Optimization levels are
- * attached to the module as properties. Use {@link SuperTaskCluster#setFlags}
+ * attached to the module as properties. Use {@link #SuperTask+setFlags}
  * to set order and optimization flags individually.
  *
  * @param {Enum} O_LEVEL - Optimization Level
@@ -441,7 +441,7 @@ SuperTask.ST_MINIMAL = ST_MINIMAL;
 SuperTask.ST_UNRESTRICTED = ST_UNRESTRICTED;
 
 // Extend Flags
-/** Flag to set Average Execution Time (AET) to Ascending see {@link SuperTaskCluster#setFlags} */
+/** Flag to set Average Execution Time (AET) to Ascending see {@link #SuperTask+setFlags} */
 SuperTask.ST_O_AET_ASC = Optimizer.flags.ST_O_AET_ASC;
 /** Flag to set Average Execution Time (AET) to Descending */
 SuperTask.ST_O_AET_DSC = Optimizer.flags.ST_O_AET_DSC;
@@ -458,11 +458,11 @@ SuperTask.ST_O_SORT_BUCKETONLY = Optimizer.flags.ST_O_SORT_BUCKETONLY;
 /** Flag to use QuickSort as the only sorting method. (Slower than default but uses less memory) */
 SuperTask.ST_O_SORT_QUICKONLY = Optimizer.flags.ST_O_SORT_QUICKONLY;
 // Extend Levels
-/** Disables optimizations see {@link SuperTaskCluster#setLevel} */
+/** Disables optimizations see {@link #SuperTask+setLevel} */
 SuperTask.ST_O0 = Optimizer.levels.ST_O0;
-/** Enables priority only optimizations see {@link SuperTaskCluster#setLevel} */
+/** Enables priority only optimizations see {@link #SuperTask+setLevel} */
 SuperTask.ST_O1 = Optimizer.levels.ST_O1;
-/** Enables AET, ER and priority optimizations see {@link SuperTaskCluster#setLevel} */
+/** Enables AET, ER and priority optimizations see {@link #SuperTask+setLevel} */
 SuperTask.ST_O2 = Optimizer.levels.ST_O2;
 SuperTask.ST_O3 = Optimizer.levels.ST_O3;
 ///

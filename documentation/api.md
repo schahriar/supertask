@@ -151,7 +151,7 @@ Get a wrapped version of the task.
 
 <a name="SuperTask+setOptimization"></a>
 ### superTask.setOptimization(O_LEVEL)
-Set Cargo/Queue optimization level used to indicate which propertiesare used to sort the order of execution. Optimization levels areattached to the module as properties. Use [SuperTaskCluster#setFlags](SuperTaskCluster#setFlags)to set order and optimization flags individually.
+Set Cargo/Queue optimization level used to indicate which propertiesare used to sort the order of execution. Optimization levels areattached to the module as properties. Use [#SuperTask+setFlags](#SuperTask+setFlags)to set order and optimization flags individually.
 
 **Kind**: instance method of <code>[SuperTask](#SuperTask)</code>  
 
@@ -231,7 +231,7 @@ UNSAFE, All permissions. Copies global scope.
 
 <a name="SuperTask.ST_O_AET_ASC"></a>
 ### SuperTask.ST_O_AET_ASC
-Flag to set Average Execution Time (AET) to Ascending see [SuperTaskCluster#setFlags](SuperTaskCluster#setFlags)
+Flag to set Average Execution Time (AET) to Ascending see [#SuperTask+setFlags](#SuperTask+setFlags)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
@@ -295,7 +295,7 @@ Flag to use QuickSort as the only sorting method. (Slower than default but uses 
 
 <a name="SuperTask.ST_O0"></a>
 ### SuperTask.ST_O0
-Disables optimizations see [SuperTaskCluster#setLevel](SuperTaskCluster#setLevel)
+Disables optimizations see [#SuperTask+setLevel](#SuperTask+setLevel)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
@@ -303,7 +303,7 @@ Disables optimizations see [SuperTaskCluster#setLevel](SuperTaskCluster#setLevel
 
 <a name="SuperTask.ST_O1"></a>
 ### SuperTask.ST_O1
-Enables priority only optimizations see [SuperTaskCluster#setLevel](SuperTaskCluster#setLevel)
+Enables priority only optimizations see [#SuperTask+setLevel](#SuperTask+setLevel)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
@@ -311,7 +311,7 @@ Enables priority only optimizations see [SuperTaskCluster#setLevel](SuperTaskClu
 
 <a name="SuperTask.ST_O2"></a>
 ### SuperTask.ST_O2
-Enables AET, ER and priority optimizations see [SuperTaskCluster#setLevel](SuperTaskCluster#setLevel)
+Enables AET, ER and priority optimizations see [#SuperTask+setLevel](#SuperTask+setLevel)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
