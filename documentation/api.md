@@ -1,3 +1,12 @@
+## Classes
+
+<dl>
+<dt><a href="#SuperTask">SuperTask</a></dt>
+<dd></dd>
+<dt><a href="#Task">Task</a></dt>
+<dd></dd>
+</dl>
+
 <a name="SuperTask"></a>
 ## SuperTask
 **Kind**: global class  
@@ -295,7 +304,7 @@ Flag to use QuickSort as the only sorting method. (Slower than default but uses 
 
 <a name="SuperTask.ST_O0"></a>
 ### SuperTask.ST_O0
-Disables optimizations see [#SuperTask+setOptimization](#SuperTask+setOptimization)
+Disables optimizations see [setOptimization](#SuperTask+setOptimization)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
@@ -303,7 +312,7 @@ Disables optimizations see [#SuperTask+setOptimization](#SuperTask+setOptimizati
 
 <a name="SuperTask.ST_O1"></a>
 ### SuperTask.ST_O1
-Enables priority only optimizations see [#SuperTask+setOptimization](#SuperTask+setOptimization)
+Enables priority only optimizations see [setOptimization](#SuperTask+setOptimization)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 
@@ -311,9 +320,139 @@ Enables priority only optimizations see [#SuperTask+setOptimization](#SuperTask+
 
 <a name="SuperTask.ST_O2"></a>
 ### SuperTask.ST_O2
-Enables AET, ER and priority optimizations see [#SuperTask+setOptimization](#SuperTask+setOptimization)
+Enables AET, ER and priority optimizations see [setOptimization](#SuperTask+setOptimization)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="Task"></a>
+## Task
+**Kind**: global class  
+
+* [Task](#Task)
+    * [new Task()](#new_Task_new)
+    * [.permission([permission])](#Task+permission) ⇒ <code>SuperTaskPermissionFlag</code>
+    * [.context([context])](#Task+context) ⇒ <code>Object</code>
+    * [.priority([priority])](#Task+priority) ⇒ <code>Number</code>
+    * [.sandbox([sandboxed])](#Task+sandbox) ⇒ <code>Boolean</code>
+    * [.call([...arguments], callback)](#Task+call)
+    * [.apply(context, arguments, callback)](#Task+apply)
+    * [.precompile(context)](#Task+precompile)
+
+
+-
+
+<a name="new_Task_new"></a>
+### new Task()
+Created through [addLocal](#SuperTask+addLocal), [addShared](#SuperTask+addShared) and [get](#SuperTask+get) methods.
+
+
+-
+
+<a name="Task+permission"></a>
+### task.permission([permission]) ⇒ <code>SuperTaskPermissionFlag</code>
+Gets/Sets permission of the Task based on the given SuperTaskPermissionFlagsuch as [SuperTask#ST_NONE](SuperTask#ST_NONE) or [SuperTask#ST_MINIMAL](SuperTask#ST_MINIMAL).
+
+**Kind**: instance method of <code>[Task](#Task)</code>  
+**Returns**: <code>SuperTaskPermissionFlag</code> - access  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [permission] | <code>SuperTaskPermissionFlag</code> | Permission of the Task. |
+
+**Example**  
+```js
+var SuperTask = require('supertask');var TaskManager = new SuperTask();TaskManager.addLocal('minimaltask', function(callback) { setTimeout(callback, 1000); }, function(error, task) {     task.permission(SuperTask.ST_MINIMAL);});
+```
+
+-
+
+<a name="Task+context"></a>
+### task.context([context]) ⇒ <code>Object</code>
+Gets/Sets context of the Task. Context is not the same asa local function context (this). This context is the VM'scontext such as globals. Check out NodeJS's VM core modulefor more info.
+
+**Kind**: instance method of <code>[Task](#Task)</code>  
+**Returns**: <code>Object</code> - context  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [context] | <code>Object</code> | Context of the Task. |
+
+**Example**  
+```js
+var SuperTask = require('supertask');var TaskManager = new SuperTask();TaskManager.addLocal('ctask', function(callback) { callback(null, this.test); }, function(error, task) {     task.context({ test: 'yes' });     TaskManager.do('ctask', function(error, r1){         console.log(r1);         // Output: yes     })});
+```
+
+-
+
+<a name="Task+priority"></a>
+### task.priority([priority]) ⇒ <code>Number</code>
+Gets/Sets Task's priority that determines order of executionin optimizations. To disable property set optimization levelto [SuperTask#ST_0](SuperTask#ST_0). To change order of priority use[SuperTask#ST_O_PRIORITY_ASC](SuperTask#ST_O_PRIORITY_ASC) & [SuperTask#ST_O_PRIORITY_DSC](SuperTask#ST_O_PRIORITY_DSC)with [setFlags](#SuperTask+setFlags) method.
+
+**Kind**: instance method of <code>[Task](#Task)</code>  
+**Returns**: <code>Number</code> - priority  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [priority] | <code>Number</code> | Priority of the Task. |
+
+
+-
+
+<a name="Task+sandbox"></a>
+### task.sandbox([sandboxed]) ⇒ <code>Boolean</code>
+Gets/Sets Task's isSanboxed property. If a task is sandboxedit is determined to be likely for it to throw therefore it iswrapped around a try/catch block. By default all no local tasksare sandboxed. Error that is caught is passed to callback as thefirst argument.
+
+**Kind**: instance method of <code>[Task](#Task)</code>  
+**Returns**: <code>Boolean</code> - sandboxed  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [sandboxed] | <code>Boolean</code> | Sandbox property of the Task. |
+
+
+-
+
+<a name="Task+call"></a>
+### task.call([...arguments], callback)
+An internal replacement for [do](#SuperTask+do) function.
+
+**Kind**: instance method of <code>[Task](#Task)</code>  
+
+| Param | Type |
+| --- | --- |
+| [...arguments] | <code>arguments</code> | 
+| callback | <code>function</code> | 
+
+
+-
+
+<a name="Task+apply"></a>
+### task.apply(context, arguments, callback)
+An extension to [do](#SuperTask+do) function. Enables passingof context as the first argument and call arguments as an array
+
+**Kind**: instance method of <code>[Task](#Task)</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| context | <code>Object</code> | Context of the Task. |
+| arguments | <code>Array</code> | An array of arguments. |
+| callback | <code>function</code> |  |
+
+
+-
+
+<a name="Task+precompile"></a>
+### task.precompile(context)
+Allows for precompilation of the Task to save execution timeon the first call. Note that to change the context you'llneed to precompile the task again. Context is preserved.
+
+**Kind**: instance method of <code>[Task](#Task)</code>  
+
+| Param | Type |
+| --- | --- |
+| context | <code>Object</code> | 
+
 
 -
 
