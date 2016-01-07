@@ -20,6 +20,17 @@
         * [.ST_RESTRICTED](#SuperTask.ST_RESTRICTED)
         * [.ST_MINIMAL](#SuperTask.ST_MINIMAL)
         * [.ST_UNRESTRICTED](#SuperTask.ST_UNRESTRICTED)
+        * [.ST_O_AET_ASC](#SuperTask.ST_O_AET_ASC)
+        * [.ST_O_AET_DSC](#SuperTask.ST_O_AET_DSC)
+        * [.ST_O_PRIORITY_ASC](#SuperTask.ST_O_PRIORITY_ASC)
+        * [.ST_O_PRIORITY_DSC](#SuperTask.ST_O_PRIORITY_DSC)
+        * [.ST_O_ER_ASC](#SuperTask.ST_O_ER_ASC)
+        * [.ST_O_ER_DSC](#SuperTask.ST_O_ER_DSC)
+        * [.ST_O_SORT_BUCKETONLY](#SuperTask.ST_O_SORT_BUCKETONLY)
+        * [.ST_O_SORT_QUICKONLY](#SuperTask.ST_O_SORT_QUICKONLY)
+        * [.ST_O0](#SuperTask.ST_O0)
+        * [.ST_O1](#SuperTask.ST_O1)
+        * [.ST_O2](#SuperTask.ST_O2)
 
 
 -
@@ -213,6 +224,94 @@ Minimal permissions. Allows all restricted permissions and __dirname, __filename
 <a name="SuperTask.ST_UNRESTRICTED"></a>
 ### SuperTask.ST_UNRESTRICTED
 UNSAFE, All permissions. Copies global scope.
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O_AET_ASC"></a>
+### SuperTask.ST_O_AET_ASC
+Flag to set Average Execution Time (AET) to Ascending see [SuperTaskCluster#setFlags](SuperTaskCluster#setFlags)
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O_AET_DSC"></a>
+### SuperTask.ST_O_AET_DSC
+Flag to set Average Execution Time (AET) to Descending
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O_PRIORITY_ASC"></a>
+### SuperTask.ST_O_PRIORITY_ASC
+Flag to set Priority to Ascending
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O_PRIORITY_DSC"></a>
+### SuperTask.ST_O_PRIORITY_DSC
+Flag to set Priority to Descending
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O_ER_ASC"></a>
+### SuperTask.ST_O_ER_ASC
+Flag to set Execution Rounds (ER) to Ascending
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O_ER_DSC"></a>
+### SuperTask.ST_O_ER_DSC
+Flag to set Execution Rounds (ER) to Descending
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O_SORT_BUCKETONLY"></a>
+### SuperTask.ST_O_SORT_BUCKETONLY
+Flag to use BucketSort as the only sorting method. (UNSAFE, can cause buffer overflow)
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O_SORT_QUICKONLY"></a>
+### SuperTask.ST_O_SORT_QUICKONLY
+Flag to use QuickSort as the only sorting method. (Slower than default but uses less memory)
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O0"></a>
+### SuperTask.ST_O0
+Disables optimizations see [SuperTaskCluster#setLevel](SuperTaskCluster#setLevel)
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O1"></a>
+### SuperTask.ST_O1
+Enables priority only optimizations see [SuperTaskCluster#setLevel](SuperTaskCluster#setLevel)
+
+**Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
+
+-
+
+<a name="SuperTask.ST_O2"></a>
+### SuperTask.ST_O2
+Enables AET, ER and priority optimizations see [SuperTaskCluster#setLevel](SuperTaskCluster#setLevel)
 
 **Kind**: static property of <code>[SuperTask](#SuperTask)</code>  
 

@@ -441,13 +441,30 @@ SuperTask.ST_MINIMAL = ST_MINIMAL;
 SuperTask.ST_UNRESTRICTED = ST_UNRESTRICTED;
 
 // Extend Flags
-for (var fkey in Optimizer.flags) {
-    if (!SuperTask[fkey]) SuperTask[fkey] = Optimizer.flags[fkey];
-}
+/** Flag to set Average Execution Time (AET) to Ascending see {@link SuperTaskCluster#setFlags} */
+SuperTask.ST_O_AET_ASC = Optimizer.flags.ST_O_AET_ASC;
+/** Flag to set Average Execution Time (AET) to Descending */
+SuperTask.ST_O_AET_DSC = Optimizer.flags.ST_O_AET_DSC;
+/** Flag to set Priority to Ascending */
+SuperTask.ST_O_PRIORITY_ASC = Optimizer.flags.ST_O_PRIORITY_ASC;
+/** Flag to set Priority to Descending */
+SuperTask.ST_O_PRIORITY_DSC = Optimizer.flags.ST_O_PRIORITY_DSC;
+/** Flag to set Execution Rounds (ER) to Ascending */
+SuperTask.ST_O_ER_ASC = Optimizer.flags.ST_O_ER_ASC;
+/** Flag to set Execution Rounds (ER) to Descending */
+SuperTask.ST_O_ER_DSC = Optimizer.flags.ST_O_ER_DSC;
+/** Flag to use BucketSort as the only sorting method. (UNSAFE, can cause buffer overflow) */
+SuperTask.ST_O_SORT_BUCKETONLY = Optimizer.flags.ST_O_SORT_BUCKETONLY;
+/** Flag to use QuickSort as the only sorting method. (Slower than default but uses less memory) */
+SuperTask.ST_O_SORT_QUICKONLY = Optimizer.flags.ST_O_SORT_QUICKONLY;
 // Extend Levels
-for (var lkey in Optimizer.levels) {
-    if (!SuperTask[lkey]) SuperTask[lkey] = Optimizer.levels[lkey];
-}
+/** Disables optimizations see {@link SuperTaskCluster#setLevel} */
+SuperTask.ST_O0 = Optimizer.levels.ST_O0;
+/** Enables priority only optimizations see {@link SuperTaskCluster#setLevel} */
+SuperTask.ST_O1 = Optimizer.levels.ST_O1;
+/** Enables AET, ER and priority optimizations see {@link SuperTaskCluster#setLevel} */
+SuperTask.ST_O2 = Optimizer.levels.ST_O2;
+SuperTask.ST_O3 = Optimizer.levels.ST_O3;
 ///
 
 module.exports = SuperTask;
