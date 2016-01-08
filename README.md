@@ -4,7 +4,9 @@
 
 ## Supertask is a NodeJS task queue designed for parallel and cluster execution with optimizations.
 
-**Supertask** was designed to run tasks in parallel and enable for a connected interface to distribute tasks across a network or cluster. A task can either be a local JavaScript function or in form of source which is then compiled and sandboxed through the VM. **This is a base module you should checkout [Supertask-cluster](https://github.com/schahriar/supertask-cluster) a superset of this module that automatically runs and handles tasks on a NodeJS cluster of Workers.**
+**Supertask** was designed to run tasks in parallel and enable for a connected interface to distribute tasks across a network or cluster. A task can either be a local JavaScript function or in form of source which is then compiled and sandboxed through the VM.
+
+**This is a base module used for creating and executing tasks. If you want to try parallelization features that this module enables you should checkout [Supertask-cluster](https://github.com/schahriar/supertask-cluster) a superset of this module that automatically runs and handles tasks on a NodeJS cluster of Workers.**
 
 # Installation
 Note that Supertask requires *ES6* and is designed to run on NodeJS 4.x and above.
@@ -12,8 +14,19 @@ Note that Supertask requires *ES6* and is designed to run on NodeJS 4.x and abov
 npm install supertask
 ```
 
+# Understanding Tasks
+## What is a Task?
+A Task is the product of any NodeJS async script file that performs and action and exports a function through `module.exports` that function is then cached and used as the Task itself. Tasks can be called with arguments and return parameters through callbacks but most importantly Tasks can be parallelized through a certain number of additional features. We'll get to these in a bit.
+## What's the difference between a Task and a Function?
+Functions can't be shared within Clusters or networks in JS unlike many other types that can be trasferred in form of JSON. That's because of **context** and **closures**. If we could ignore closures and instead stick to contexts we can pass the source of these functions across a network and re-compile then through the VM Core Module provided with NodeJS from source. In fact `require` itself uses VM to process modules. *Moreover Functions can be converted to Tasks but without [closures](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures). Although you can provide global variable access through Task#context which can be useful at times.*
+## Types of Tasks
+SuperTask provides 4 different types of tasks. **Local**, **Shared**, **Foreign** and soon **Remote**. **Local** tasks are merely functions but use the internal SuperTask Queue and its optimizations. **Shared** tasks are true Tasks that accept a handler function to call them within whatever shared context is implemented (e.g. [Cluster](https://www.npmjs.com/package/supertask-cluster), Network). **Foreign** tasks are tasks that are introduced from an outside source (again Cluster/Network). **Foreign/Shared tasks can be sandboxed** but this doesn't mean you can run unsafe code within them.
+
+## What does this module do?
+SuperTask introduces the concept of these Parallelized tasks. It implementes a **Queue** with concurrency handling and **Tracking** features such as timeouts and performance measurements that work with an **Optimization** sorting algorithm that can be customized to prioritize tasks based on certain factors such as Average Execution Time or a given priority number when they are called. **Note that SuperTask is a base module and only provides the concept and implementation of Tasks**, real parallelization of these tasks are built on top of this module. Check-out [SuperTask-Cluster](https://www.npmjs.com/package/supertask-cluster) for an implementation that utilizes all CPU cores (instead of single-threaded NodeJS) by distributing tasks across a Cluster of processes. 
+
 # Usage
-Create a new local task with a unique name. Note that a unique name is required for every task.
+Create a new local task with a unique name. **Note that a unique name is required for every task.**
 ```javascript
 var Supertask = require('supertask');
 var TaskManager = new Supertask();
@@ -70,7 +83,7 @@ TaskManager.addForeign('contextMultiply', source, function callback(error, task)
 [API documentation is available here.](./documentation/api.md).
 
 ## Disclaimer
-This module is not *yet* ready to be used in a production environment. While Supertask has reasonably good stability with over 40 tests it does not fully expose all methods and capabilities and may not function as intended. Supertask-cluster is equally missing some important cluster monitoring methods to keep the cluster alive and well in a production environment. Use it at your own risk.
+This module is not *yet* ready to be used in a production environment. While Supertask has reasonably good stability with over 40 tests it does not fully expose all methods and capabilities and may not function as intended. Furthermore there may be breaking API changes in the upcoming versions. This module follows [Semver](http://semver.org/) as much as possible but use it at your own risk.
 
 ## License
 MIT © Schahriar SaffarShargh <info@schahriar.com>
