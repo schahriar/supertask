@@ -353,9 +353,9 @@ describe('Task Model Suite', function() {
     it('should set/unset permissions', function(done) {
         TaskManager.addLocal('localMFuncP1', pow2, function(error, task) {
             expect(task).to.have.property('model');
-            expect(task.permission()).to.be.equal(SuperTask.ST_NONE);
-            task.permission(SuperTask.ST_MINIMAL);
             expect(task.permission()).to.be.equal(SuperTask.ST_MINIMAL);
+            task.permission(SuperTask.ST_RESTRICTED);
+            expect(task.permission()).to.be.equal(SuperTask.ST_RESTRICTED);
             done();
         });
     });
