@@ -416,6 +416,13 @@ describe('Task Model Suite', function() {
             });
         });
     });
+    it('should do through wrapper (alias check)', function(done) {
+        var task = TaskManager.get('localMFuncC');
+        task.do(2, function(error, result) {
+            expect(result).to.be.equal(4);
+            done();
+        });
+    });
     it('should apply through wrapper', function(done) {
         TaskManager.addLocal('localMFuncA', pow2, function(error, task) {
             expect(task).to.have.property('model');

@@ -332,6 +332,7 @@ Enables AET, ER and priority optimizations see [setOptimization](#SuperTask+setO
 
 * [Task](#Task)
     * [new Task()](#new_Task_new)
+    * [.do](#Task+do)
     * [.permission([permission])](#Task+permission) ⇒ <code>SuperTaskPermissionFlag</code>
     * [.context([context])](#Task+context) ⇒ <code>Object</code>
     * [.priority([priority])](#Task+priority) ⇒ <code>Number</code>
@@ -346,6 +347,20 @@ Enables AET, ER and priority optimizations see [setOptimization](#SuperTask+setO
 <a name="new_Task_new"></a>
 ### new Task()
 Created through [addLocal](#SuperTask+addLocal), [addShared](#SuperTask+addShared) and [get](#SuperTask+get) methods.
+
+
+-
+
+<a name="Task+do"></a>
+### task.do
+An alias for [call](#Task+call) function.
+
+**Kind**: instance property of <code>[Task](#Task)</code>  
+
+| Param | Type |
+| --- | --- |
+| [...arguments] | <code>arguments</code> | 
+| callback | <code>function</code> | 
 
 
 -
