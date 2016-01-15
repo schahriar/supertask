@@ -9,7 +9,6 @@ var defaultsDeep = require('lodash.defaultsdeep');
 ///
 /// Internal Modules
 var ContextPermissions = require('./lib/ContextPermissions');
-var Optimizer = require('./lib/Optimizations');
 var TaskModel = require('./lib/TaskModel');
 ///
 /// Predefined Types
@@ -37,8 +36,6 @@ var SuperTask = function ST_INIT(strict) {
     this._timeout = 1000;
     this.map = new Map();
     this.strict = (!!strict);
-    this.O_MASK = null;
-    this.O_LEVEL = Optimizer.levels.ST_O2;
     this.cargo = async.cargo(this._next.bind({
         mask: this.O_MASK,
         level: this.O_LEVEL,
@@ -62,9 +59,6 @@ SuperTask.prototype._next = function ST__CARGO_NEXT(tasks, callback) {
     /* from cache to be executed. Here we transfer
     /* the given function (task.func) to the cargo
     /* after attaching the pre tracker */
-
-    // Optimize Tasks
-    tasks = Optimizer.optimize(tasks, this.level, this.mask);
     
     // Go through tasks in parallel
     async.each(tasks, function ST__CARGO_EACH(task, done) {
@@ -439,32 +433,5 @@ SuperTask.ST_RESTRICTED = ST_RESTRICTED;
 SuperTask.ST_MINIMAL = ST_MINIMAL;
 /** UNSAFE, All permissions. Copies global scope. */
 SuperTask.ST_UNRESTRICTED = ST_UNRESTRICTED;
-
-// Extend Flags
-/** Flag to set Average Execution Time (AET) to Ascending {@link SuperTask#setFlags} */
-SuperTask.ST_O_AET_ASC = Optimizer.flags.ST_O_AET_ASC;
-/** Flag to set Average Execution Time (AET) to Descending */
-SuperTask.ST_O_AET_DSC = Optimizer.flags.ST_O_AET_DSC;
-/** Flag to set Priority to Ascending */
-SuperTask.ST_O_PRIORITY_ASC = Optimizer.flags.ST_O_PRIORITY_ASC;
-/** Flag to set Priority to Descending */
-SuperTask.ST_O_PRIORITY_DSC = Optimizer.flags.ST_O_PRIORITY_DSC;
-/** Flag to set Execution Rounds (ER) to Ascending */
-SuperTask.ST_O_ER_ASC = Optimizer.flags.ST_O_ER_ASC;
-/** Flag to set Execution Rounds (ER) to Descending */
-SuperTask.ST_O_ER_DSC = Optimizer.flags.ST_O_ER_DSC;
-/** Flag to use BucketSort as the only sorting method. (UNSAFE, can cause buffer overflow) */
-SuperTask.ST_O_SORT_BUCKETONLY = Optimizer.flags.ST_O_SORT_BUCKETONLY;
-/** Flag to use QuickSort as the only sorting method. (Slower than default but uses less memory) */
-SuperTask.ST_O_SORT_QUICKONLY = Optimizer.flags.ST_O_SORT_QUICKONLY;
-// Extend Levels
-/** Disables optimizations see {@link SuperTask#setOptimization} */
-SuperTask.ST_O0 = Optimizer.levels.ST_O0;
-/** Enables priority only optimizations see {@link SuperTask#setOptimization} */
-SuperTask.ST_O1 = Optimizer.levels.ST_O1;
-/** Enables AET, ER and priority optimizations see {@link SuperTask#setOptimization} */
-SuperTask.ST_O2 = Optimizer.levels.ST_O2;
-SuperTask.ST_O3 = Optimizer.levels.ST_O3;
-///
 
 module.exports = SuperTask;
