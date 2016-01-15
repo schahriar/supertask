@@ -30,15 +30,15 @@ function noop() { return null; }
  * @returns {Instance} Returns a new instance of the module.
  */
 var SuperTask = function ST_INIT(size, strict) {
-  this._batch = [];
-  this._paused = true;
-  this._busy = false;
-  this._timeout = 1000;
-  this.map = new Map();
-  this.queue = new Deque(parseInt(size) || 10000);
-  this.strict = (!!strict);
+    this._batch = [];
+    this._paused = true;
+    this._busy = false;
+    this._timeout = 1000;
+    this.map = new Map();
+    this.queue = new Deque(parseInt(size) || 10000);
+    this.strict = (!!strict);
 
-  eventEmmiter.call(this);
+    eventEmmiter.call(this);
 };
 
 util.inherits(SuperTask, eventEmmiter);
@@ -48,96 +48,101 @@ SuperTask.prototype._wrapTask = TaskModel.wrap;
 
 SuperTask.prototype._extendContextFromPermissions = ContextPermissions;
 
-SuperTask.prototype._next = function ST__QUEUE_NEXT(task) {
-  /* At this point the source is fully compiled
-  /* to a function or a function is resupplied
-  /* from cache to be executed. Here we transfer
-  /* the given function (task.func) to the queue
-  /* after attaching the pre tracker */
+SuperTask.prototype._next = function ST__QUEUE_NEXT() {
+    /* At this point the source is fully compiled
+    /* to a function or a function is resupplied
+    /* from cache to be executed. Here we transfer
+    /* the given function (task.func) to the queue
+    /* after attaching the pre tracker */
+    
+    // Get a task
+    var task = this.queue.shift();
 
-  // Call preTracker
-  task.pre();
-  // Push Callback to args
-  task.args.push(task.callback);
-  // If task is shared call handler
-  if (task.shared && task.handler) {
-    // Assign task name to argument[0] followed by context
-    task.args.unshift(task.context);
-    task.args.unshift(task.name);
-    task.handler.apply(null, task.args);
-  } else {
-    // Call local/remote Function with context & args
-    if (task.sandboxed) {
-      try {
-        task.func.apply(task.context, task.args);
-      } catch (error) {
-        task.callback(error);
-      }
+    // Call preTracker
+    task.pre();
+    // Push Callback to args
+    task.args.push(task.callback);
+    // If task is shared call handler
+    if (task.shared && task.handler) {
+        // Assign task name to argument[0] followed by context
+        task.args.unshift(task.context);
+        task.args.unshift(task.name);
+        task.handler.apply(null, task.args);
     } else {
-      task.func.apply(task.context, task.args);
+        // Call local/remote Function with context & args
+        if (task.sandboxed) {
+            try {
+                task.func.apply(task.context, task.args);
+            } catch (error) {
+                task.callback(error);
+            }
+        } else {
+            task.func.apply(task.context, task.args);
+        }
     }
-  }
 };
 
 SuperTask.prototype._push_ = function ST__QUEUE_ADD(taskObject) {
-  this.queue.push(taskObject);
-  this._next(taskObject);
+    this.queue.push(taskObject);
+    setImmediate(() => {
+        this._next();
+    });
 };
 
 SuperTask.prototype._addTask = function ST__ADD_TASK(name, func, handler, type, callback) {
-  if (typeof callback !== 'function') callback = noop;
+    if (typeof callback !== 'function') callback = noop;
     
-  // Make sure Map Key is not taken
-  if (this.map.has(name)) {
-    return callback(new Error('Enable to create new task. A Task with the given name already exists.'));
-  }
+    // Make sure Map Key is not taken
+    if (this.map.has(name)) {
+        return callback(new Error('Enable to create new task. A Task with the given name already exists.'));
+    }
     
-  // Add ST_DO function to the back with current context
-  // & Create task
-  var task = this._createTask(this, name, func, handler, type);
-  // Add Task's model to Map
-  this.map.set(name, task.model);
+    // Add ST_DO function to the back with current context
+    // & Create task
+    var task = this._createTask(this, name, func, handler, type);
+    // Add Task's model to Map
+    this.map.set(name, task.model);
 
-  callback(null, task);
+    callback(null, task);
 };
 
 SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
-  // Check if script is not compiled
-  if (typeof task.func === 'string') {
-    // Compile script using VM
-    task.func = new vm.Script(task.func);
-  }
-  // Make sure we can call run on the compiled script
-  if (typeof task.func.runInContext !== 'function') {
-    return new Error("Unknown Error Occurred. Function property of Task is invalid or failed to compile.");
-  }
-  // Define module.exports and exports in context
-  if (!context) context = {};
-  context.module = {};
-  context.exports = context.module.exports = {};
-    
-  // Create VM Context from context object
-  vm.createContext(context);
-  // Run Compiled Script
-  task.func.runInContext(context);
-
-  if (task.isModule) {
-    // Make sure module.exports is set to a function
-    // after script is run. Similar to how require(...)
-    // modules work.
-    if (typeof context.module.exports === 'function') {
-      // Cache and Call the function
-      task.func = context.module.exports;
-      // Set isCompiled property to prevent recompilation
-      task.isCompiled = true;
-
-      return task.func;
-    } else {
-      return new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function.");
+    // Check if script is not compiled
+    if (typeof task.func === 'string') {
+        // Compile script using VM
+        task.func = new vm.Script(task.func);
     }
-  } else {
-    return task.func;
-  }
+    // Make sure we can call run on the compiled script
+    if (typeof task.func.runInContext !== 'function') {
+        return new Error("Unknown Error Occurred. Function property of Task is invalid or failed to compile.");
+    }
+    // Define module.exports and exports in context
+    if (!context) context = {};
+    context.module = {};
+    context.exports = context.module.exports = {};
+    
+    // Create VM Context from context object
+    vm.createContext(context);
+    // Run Compiled Script
+    task.func.runInContext(context);
+
+    if (task.isModule) {
+        // Make sure module.exports is set to a function
+        // after script is run. Similar to how require(...)
+        // modules work.
+        if (typeof context.module.exports === 'function') {
+            // Cache and Call the function
+            task.func = context.module.exports;
+            // Set isCompiled property to prevent recompilation
+            task.isCompiled = true;
+
+            return task.func;
+        } else {
+            return new Error("Compiled Script is not a valid foreign task or module. Failed to identify module.exports as a function.");
+        }
+    } else {
+        return task.func;
+    }
 };
 
 /**
@@ -152,7 +157,7 @@ SuperTask.prototype._compile = function ST__VM_COMPILE(task, context) {
  * parameters `error` and `task`. 
  */
 SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
-  return this._addTask(name, func, null, ST_LOCAL_TYPE, callback);
+    return this._addTask(name, func, null, ST_LOCAL_TYPE, callback);
 };
 
 /**
@@ -170,12 +175,12 @@ SuperTask.prototype.addLocal = function ST_ADD_LOCAL(name, func, callback) {
  * parameters `error` and `task`. 
  */
 SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback) {
-  // VM requires a String source to compile
-  // If given source is a function convert it to source (context is lost)
-  if (typeof source === 'function') {
-    source = 'module.exports = ' + source.toString();
-  }
-  return this._addTask(name, source, null, ST_FOREIGN_TYPE, callback);
+    // VM requires a String source to compile
+    // If given source is a function convert it to source (context is lost)
+    if (typeof source === 'function') {
+        source = 'module.exports = ' + source.toString();
+    }
+    return this._addTask(name, source, null, ST_FOREIGN_TYPE, callback);
 };
 
 /**
@@ -191,22 +196,22 @@ SuperTask.prototype.addForeign = function ST_ADD_FOREIGN(name, source, callback)
  * parameters `error` and `task`.
  */
 SuperTask.prototype.addShared = function ST_ADD_SHARED(name, source, handler, callback) {
-  // VM requires a String source to compile
-  // If given source is a function convert it to source (context is lost)
-  if (typeof source === 'function') {
-    source = 'module.exports = ' + source.toString();
-  }
-  return this._addTask(name, source, handler, ST_SHARED_TYPE, callback);
+    // VM requires a String source to compile
+    // If given source is a function convert it to source (context is lost)
+    if (typeof source === 'function') {
+        source = 'module.exports = ' + source.toString();
+    }
+    return this._addTask(name, source, handler, ST_SHARED_TYPE, callback);
 };
 
 SuperTask.prototype.addRemote = function ST_ADD_REMOTE(name, handler, callback) {
-  this._addTask(name, handler, null, ST_FOREIGN_TYPE, function ST_REMOTE_CREATOR(error, task) {
-    if (error) return callback(error);
-    // Attach handler
-    task.remote(true, handler);
+    this._addTask(name, handler, null, ST_FOREIGN_TYPE, function ST_REMOTE_CREATOR(error, task) {
+        if (error) return callback(error);
+        // Attach handler
+        task.remote(true, handler);
 
-    callback(error, task);
-  });
+        callback(error, task);
+    });
 };
 
 /**
@@ -221,78 +226,78 @@ SuperTask.prototype.addRemote = function ST_ADD_REMOTE(name, handler, callback) 
  * per usual NodeJS async calls.
  */
 SuperTask.prototype.do = function ST_DO() {
-  var args = Array.prototype.slice.call(arguments);
-  var name = args.shift();
-  var callback = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
-  // Check for callback
-  // Note that we only throw if strict is set to true
-  if ((typeof callback !== 'function') && (this.strict === true)) throw new Error("A callback is required to execute a task. Pass a noop function if errors are intended to be ignored.");
-  else if (typeof callback !== 'function') {
-    callback = noop;
-  }
-    
-  // Check for mapped task
-  if (!this.map.has(name)) {
-    callback(new Error('Task not found!'));
-    return;
-  }
-
-  var task = this.map.get(name);
-  // Set Context to task's default
-  var context = task.defaultContext;
-  // Combine Permissions Context (SLOWS DOWN EXECUTION)
-  if ((task.access) && (task.access !== ST_NONE)) {
-    context = this._extendContextFromPermissions(context || {}, task.access);
-  }
-  // Function executed on queue execution
-  var preTracker = function ST_DO_PRETRACKER() {
-    task.lastStarted = process.hrtime();
-  };
-  var postTracker = function ST_DO_POSTTRACKER(error) {
-    // Calculate High Resolution time it took to run the function
-    task.lastFinished = process.hrtime(task.lastStarted);
-    // Calculate Time Difference
-    task.lastDiff = task.lastFinished[0] * 1e9 + task.lastFinished[1];
-    // Calculate Average Execution Time
-    if (task.averageExecutionTime === -1) {
-      task.averageExecutionTime = task.lastDiff;
-    } else {
-      task.averageExecutionTime = ((task.averageExecutionTime * task.executionRounds) + task.lastDiff) / (task.executionRounds + 1);
+    var args = Array.prototype.slice.call(arguments);
+    var name = args.shift();
+    var callback = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
+    // Check for callback
+    // Note that we only throw if strict is set to true
+    if ((typeof callback !== 'function') && (this.strict === true)) throw new Error("A callback is required to execute a task. Pass a noop function if errors are intended to be ignored.");
+    else if (typeof callback !== 'function') {
+        callback = noop;
     }
-    // Bump execution rounds
-    task.executionRounds++;
-
-    callback.apply(task, arguments);
-  };
-  // Sanitize args
-  args = (Array.isArray(args)) ? args : [];
     
-  // Create a Queue-able Clone of Task
-  var Task = {};
-  Task.name = name;
-  Task.func = task.func;
-  Task.handler = task.handler;
-  Task.sandboxed = task.sandboxed;
-  Task.averageExecutionTime = task.averageExecutionTime;
-  Task.executionRounds = task.executionRounds;
-  Task.local = task.local;
-  Task.shared = task.shared;
-  Task.context = context;
-  Task.args = args;
-  Task.pre = preTracker;
-  Task.callback = postTracker;
-  //
+    // Check for mapped task
+    if (!this.map.has(name)) {
+        callback(new Error('Task not found!'));
+        return;
+    }
 
-  // Compile task if it is in source form
-  if (typeof task.func !== 'function') {
-    var result = this._compile(task, context);
-    if (typeof result === 'function') Task.func = result;
-    else if (result === true) return callback();
-    else if (typeof result === 'object') return callback(result);
-    else return callback(new Error("Unknown error occurred. Failed to compile and execution was halted."));
-  }
-  // Push to Queue
-  this._push_(Task);
+    var task = this.map.get(name);
+    // Set Context to task's default
+    var context = task.defaultContext;
+    // Combine Permissions Context (SLOWS DOWN EXECUTION)
+    if ((task.access) && (task.access !== ST_NONE)) {
+        context = this._extendContextFromPermissions(context || {}, task.access);
+    }
+    // Function executed on queue execution
+    var preTracker = function ST_DO_PRETRACKER() {
+        task.lastStarted = process.hrtime();
+    };
+    var postTracker = function ST_DO_POSTTRACKER(error) {
+        // Calculate High Resolution time it took to run the function
+        task.lastFinished = process.hrtime(task.lastStarted);
+        // Calculate Time Difference
+        task.lastDiff = task.lastFinished[0] * 1e9 + task.lastFinished[1];
+        // Calculate Average Execution Time
+        if (task.averageExecutionTime === -1) {
+            task.averageExecutionTime = task.lastDiff;
+        } else {
+            task.averageExecutionTime = ((task.averageExecutionTime * task.executionRounds) + task.lastDiff) / (task.executionRounds + 1);
+        }
+        // Bump execution rounds
+        task.executionRounds++;
+
+        callback.apply(task, arguments);
+    };
+    // Sanitize args
+    args = (Array.isArray(args)) ? args : [];
+    
+    // Create a Queue-able Clone of Task
+    var Task = {};
+    Task.name = name;
+    Task.func = task.func;
+    Task.handler = task.handler;
+    Task.sandboxed = task.sandboxed;
+    Task.averageExecutionTime = task.averageExecutionTime;
+    Task.executionRounds = task.executionRounds;
+    Task.local = task.local;
+    Task.shared = task.shared;
+    Task.context = context;
+    Task.args = args;
+    Task.pre = preTracker;
+    Task.callback = postTracker;
+    //
+
+    // Compile task if it is in source form
+    if (typeof task.func !== 'function') {
+        var result = this._compile(task, context);
+        if (typeof result === 'function') Task.func = result;
+        else if (result === true) return callback();
+        else if (typeof result === 'object') return callback(result);
+        else return callback(new Error("Unknown error occurred. Failed to compile and execution was halted."));
+    }
+    // Push to Queue
+    this._push_(Task);
 };
 
 /**
@@ -303,7 +308,7 @@ SuperTask.prototype.do = function ST_DO() {
  * existed and was removed or false if task did not exist
  */
 SuperTask.prototype.remove = function ST_REMOVE(name) {
-  return this.map.delete(name);
+    return this.map.delete(name);
 };
 
 /**
@@ -313,7 +318,7 @@ SuperTask.prototype.remove = function ST_REMOVE(name) {
  * @returns {Boolean} exists
  */
 SuperTask.prototype.has = function ST_HAS(name) {
-  return !!this.map.has(name);
+    return !!this.map.has(name);
 };
 
 /**
@@ -323,7 +328,7 @@ SuperTask.prototype.has = function ST_HAS(name) {
  * @returns {Object} task  
  */
 SuperTask.prototype.get = function ST_GET(name) {
-  return this._wrapTask(this, this.map.get(name));
+    return this._wrapTask(this, this.map.get(name));
 };
 
 /// EXTEND PREDEFINED VARS
