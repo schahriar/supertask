@@ -367,57 +367,6 @@ SuperTask.prototype.get = function ST_GET(name) {
     return this._wrapTask(this, this.map.get(name));
 };
 
-
-/**
- * Set Cargo/Queue optimization level used to indicate which properties
- * are used to sort the order of execution. Optimization levels are
- * attached to the module as properties. Use {@link #SuperTask+setFlags}
- * to set order and optimization flags individually.
- *
- * @param {Enum} O_LEVEL - Optimization Level
- * 
- * @example
- * var SuperTask = require('supertask');
- * var TaskManager = new SuperTask();
- * TaskManager.setOptimization(SuperTask.ST_O0); // No Optimizations
- * TaskManager.setOptimization(SuperTask.ST_O1); // Sort based on priority
- * TaskManager.setOptimization(SuperTask.ST_O2); // Additonally Sort based on averageExecutionTime & executionRounds
- */
-SuperTask.prototype.setOptimization = function ST_SET_OPTIMIZATION(O_LEVEL) {
-    this.O_LEVEL = O_LEVEL;
-};
-
-/**
- * Set Cargo/Queue optimization flags used to indicate the order of properties.
- * Optimization flags are attached to the module as properties.
- *
- * @param {Enum} O_MASK - Optimization Bitwise Mask
- * 
- * @example
- * var SuperTask = require('supertask');
- * var TaskManager = new SuperTask();
- * TaskManager.setFlags(ST_O_PRIORITY_ASC | ST_O_AET_DSC); // Priority Ascendng & (bitwise OR) averageExecutionTime descending
- */
-SuperTask.prototype.setFlags = function ST_SET_FLAGS(O_MASK) {
-    this.O_MASK = O_MASK;
-};
-
-/**
- * Sets/Gets timeout value. A timeout indicates the maximum
- * amount of time that the Cargo/Queue will stop before moving
- * forward for an async function. This does not halt the
- * execution but will rather call the callback with a timeout
- * error.
- *
- * @param {Number} [duration] - Timeout duration in m/s (defaults to 1000)
- * 
- * @returns {Number} timeout
- */
-SuperTask.prototype.timeout = function ST_GETSET_TIMEOUT(duration) {
-    if (duration) this._timeout = duration;
-    return this._timeout;
-};
-
 /// EXTEND PREDEFINED VARS
 SuperTask.ST_LOCAL_TYPE = ST_LOCAL_TYPE;
 SuperTask.ST_SHARED_TYPE = ST_SHARED_TYPE;
