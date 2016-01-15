@@ -4,7 +4,6 @@ var eventEmmiter = require('events').EventEmitter;
 var util = require('util');
 ///
 /// External Modules
-var async = require('async');
 var Deque = require('double-ended-queue');
 var defaultsDeep = require('lodash.defaultsdeep');
 ///
