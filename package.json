@@ -1,12 +1,11 @@
 {
   "name": "supertask",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "A task & queue environment ideal for distributed computing and execution",
-  "main": "supertask.js",
+  "main": "interface.js",
   "scripts": {
-    "pretest": "mocha ./tests/main.js",
-    "test": "mocha coverage.js -R mocha-lcov-reporter > lcov.info",
-    "posttest": "codeclimate-test-reporter < lcov.info",
+    "test": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec tests/main.js",
+    "posttest": "codeclimate-test-reporter < coverage/lcov.info",
     "localtest": "mocha ./tests/main.js",
     "benchmark": "mocha ./tests/benchmark.js",
     "docs": "node ./documentation/docs.js"
@@ -28,17 +27,17 @@
   },
   "homepage": "https://github.com/schahriar/supertask#readme",
   "devDependencies": {
+    "async": "^1.5.2",
     "benchmark": "^2.0.0",
-    "blanket": "^1.2.1",
     "chai": "^3.4.1",
     "chalk": "^1.1.1",
     "codeclimate-test-reporter": "^0.1.1",
+    "istanbul": "^0.4.2",
     "jsdoc-to-markdown": "^1.3.3",
-    "mocha": "^2.3.4",
-    "mocha-lcov-reporter": "^1.0.0"
+    "mocha": "^2.3.4"
   },
   "dependencies": {
-    "async": "^1.5.0",
+    "double-ended-queue": "^0.9.7",
     "lodash.defaultsdeep": "^3.10.0"
   }
 }
