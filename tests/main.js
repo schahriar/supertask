@@ -80,25 +80,8 @@ describe('Basic Test Suite', function(){
             });
         });
     });
-    it('should add a remote task', function(done) {
-        TaskManager.addRemote('testRemote', function HANDLER(callback) {
-            // Do some network I/O
-            // e.g. run task in cluster
-            callback(null, 'hey');
-        }, function(error, task) {
-            if(error) throw error;
-            expect(task.model).to.have.property('isRemote', true);
-            done();
-        });
-    });
-    it('should run a remote task', function(done) {
-        TaskManager.do('testRemote', function(error, result) {
-            expect(result).to.be.equal('hey');
-            done();
-        });
-    });
     it('should get a task', function() {
-        expect(TaskManager.get('testRemote').model.name).to.equal('testRemote');
+        expect(TaskManager.get('testShared').model.name).to.equal('testShared');
     });
     it('should calculate average execution time', function(done) {
         TaskManager.do('test', function(error, result) {
@@ -276,15 +259,6 @@ describe('Task Model Suite', function() {
             done();
         });
     });
-    it('should set priority', function(done) {
-        TaskManager.addLocal('localMFuncP', pow2, function(error, task) {
-            expect(task).to.have.property('model');
-            expect(task.priority()).to.be.equal(-1);
-            task.priority(10);
-            expect(task.priority()).to.be.equal(10);
-            done();
-        });
-    });
     it('should set/unset sandbox', function(done) {
         TaskManager.addLocal('localMFuncS', pow2, function(error, task) {
             expect(task).to.have.property('model');
@@ -300,17 +274,6 @@ describe('Task Model Suite', function() {
             expect(task.module()).to.be.equal(true);
             task.module(false);
             expect(task.module()).to.be.equal(false);
-            done();
-        });
-    });
-    it('should set/unset remote', function(done) {
-        function handler() {}
-        TaskManager.addLocal('localMFuncR', pow2, function(error, task) {
-            expect(task).to.have.property('model');
-            expect(task.remote()).to.be.equal(false);
-            task.remote(true, handler);
-            expect(task.remote()).to.be.equal(true);
-            expect(task.model.func).to.be.equal(handler);
             done();
         });
     });
