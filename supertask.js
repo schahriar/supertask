@@ -116,11 +116,14 @@ class SuperTask extends eventEmmiter {
         return task;
     }
 
-    _compile(task, context) {
+    _compile(task, context) {        
         // Check if script is not compiled
         if (typeof task.func === 'string') {
             // Compile script using VM
             task.func = new vm.Script(task.func);
+        }else if (typeof task.func === 'function') {
+            // If script is already compiled return it
+            return task.func;
         }
         // Make sure we can call run on the compiled script
         if (typeof task.func.runInContext !== 'function') {
