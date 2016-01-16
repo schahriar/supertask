@@ -9,7 +9,7 @@ var defaultsDeep = require('lodash.defaultsdeep');
 ///
 /// Internal Modules
 var ContextPermissions = require('./lib/ContextPermissions');
-var TaskModel = require('./lib/TaskModel');
+var TaskObject = require('./lib/TaskObject');
 ///
 /// Predefined Types
 // TYPES
@@ -41,8 +41,8 @@ var SuperTask = function ST_INIT(size, strict) {
 
 util.inherits(SuperTask, eventEmmiter);
 
-SuperTask.prototype._createTask = TaskModel.create;
-SuperTask.prototype._wrapTask = TaskModel.wrap;
+SuperTask.prototype._createTask = TaskObject.create;
+SuperTask.prototype._wrapTask = TaskObject.wrap;
 
 SuperTask.prototype._extendContextFromPermissions = ContextPermissions;
 
