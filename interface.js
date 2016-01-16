@@ -118,11 +118,9 @@ class SuperTask extends SuperTaskInternal {
             try {
                 let result = this._compile(task, context);
                 if (typeof result === 'function') task.func = result;
-                else if (result === true) return callback();
-                else if (typeof result === 'object') return callback(result);
                 else return callback(new Error("Unknown error occurred. Failed to compile and execution was halted."));
             } catch (e) {
-                callback(e);
+                return callback(e);
             }
         }
         // Push to Queue
