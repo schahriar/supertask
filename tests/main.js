@@ -39,13 +39,27 @@ describe('Basic Test Suite', function(){
             done();
         });
     });
+    it('should add and run a remote task', function(done) {
+        var task = TaskManager.addRemote('remoteTest', function(callback) {
+            callback();
+        }, function(task, name, context, args, callback) {
+            expect(task).to.have.property('name', name);
+            expect(context).to.be.equal(null);
+            expect(args).to.be.an('array');
+            expect(callback).to.be.a('function');
+            done();
+        });
+        expect(task).to.have.property('model');
+        expect(task.model).to.have.property('local');
+        task.call('hello', noop);
+    });
     it('should allow for context modifications', function(done) {
         var task = TaskManager.addLocal('testadvanced', function(callback) {
             exec++;
             callback(null, this.test);
         });
         task.permission(SuperTask.ST_NONE);
-        expect(task.model).to.have.property('shared', false);
+        expect(task.model).to.have.property('remote', false);
         TaskManager.apply('testadvanced', { test: 'advanced' }, [], function(error, test){
             expect(test).to.be.equal('advanced');
             done();

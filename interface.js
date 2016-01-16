@@ -13,7 +13,7 @@ const TaskObject = require('./lib/TaskObject');
 ///
 /// Predefined Types
 // TYPES
-const ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
+const ST_LOCAL_TYPE = 0, ST_REMOTE_TYPE = 1, ST_FOREIGN_TYPE = 2;
 // PERMISSIONS
 const ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 ///
@@ -71,6 +71,29 @@ class SuperTask extends SuperTaskInternal {
     }
     
     /**
+     * Creates a new remote Task. Remote tasks do not exist in
+     * the local machine and instead a handler function is called
+     * to run the function with the arguments wherever the task
+     * is located. Note that the handler function takes arguments
+     * of [task, name, context, args, callback].
+     * 
+     * @param {String} name - A unique name for this Task.
+     * @param {Function|String} taskFunction - The JS function or source with
+     * module.exports to be used as the function.
+     * @param {Function} handler - A handler function that is called
+     * when the task is executed.
+     * @returns {@link Task}
+     */
+    addRemote(name, source, handler) {
+        // VM requires a String source to compile
+        // If given source is a function convert it to source (context is lost)
+        if (typeof source === 'function') {
+            source = 'module.exports = ' + source.toString();
+        }
+        return this._addTask(name, source, handler, ST_REMOTE_TYPE);
+    }
+    
+    /**
      * Run a task with the given arguments
      * 
      * @param {String} taskName - Unique name of the task
@@ -124,6 +147,13 @@ class SuperTask extends SuperTaskInternal {
         // Check for mapped task
         if (!task) {
             return callback(new Error('Task not found!'));
+        }
+        
+        // Call remote tasks from the handler
+        if (task.remote) {
+            if (typeof task.handler !== 'function') return callback(new Error('Remote task was detected but no handler found'));
+            
+            return task.handler(task, name, context, args, callback);
         }
         
         // Set Globals to task's default
@@ -200,7 +230,7 @@ class SuperTask extends SuperTaskInternal {
 
 /// EXTEND PREDEFINED VARS
 SuperTask.ST_LOCAL_TYPE = ST_LOCAL_TYPE;
-SuperTask.ST_SHARED_TYPE = ST_SHARED_TYPE;
+SuperTask.ST_REMOTE_TYPE = ST_REMOTE_TYPE;
 SuperTask.ST_FOREIGN_TYPE = ST_FOREIGN_TYPE;
 
 /** No permissions. Code runs JS only. */

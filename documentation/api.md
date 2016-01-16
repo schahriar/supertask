@@ -17,6 +17,7 @@
     * _instance_
         * [.addLocal(name, taskFunction)](#SuperTask+addLocal) ⇒
         * [.addForeign(name, taskFunction)](#SuperTask+addForeign) ⇒
+        * [.addRemote(name, taskFunction, handler)](#SuperTask+addRemote) ⇒
         * [.do(taskName, ...arguments, callback)](#SuperTask+do)
         * [.apply(taskName, context, arguments, callback)](#SuperTask+apply)
         * [.remove(name)](#SuperTask+remove) ⇒ <code>Boolean</code>
@@ -69,6 +70,22 @@ Creates a new foreign Task. A local task is a task that is notshared by any out
 | --- | --- | --- |
 | name | <code>String</code> | A unique name for this Task. |
 | taskFunction | <code>function</code> | The JS function or source with module.exports to be used as the function. Note that sources are compiled to a function before use with about a 30ms overhead on the first call unless precompile method of task is called beforehand. |
+
+
+-
+
+<a name="SuperTask+addRemote"></a>
+### superTask.addRemote(name, taskFunction, handler) ⇒
+Creates a new remote Task. Remote tasks do not exist inthe local machine and instead a handler function is calledto run the function with the arguments wherever the taskis located. Note that the handler function takes argumentsof [task, name, context, args, callback].
+
+**Kind**: instance method of <code>[SuperTask](#SuperTask)</code>  
+**Returns**: [Task](#Task)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>String</code> | A unique name for this Task. |
+| taskFunction | <code>function</code> &#124; <code>String</code> | The JS function or source with module.exports to be used as the function. |
+| handler | <code>function</code> | A handler function that is called when the task is executed. |
 
 
 -
