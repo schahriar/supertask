@@ -21,7 +21,19 @@ const ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 function noop() { return null; }
 
 class SuperTask extends SuperTaskInternal {
-    
+    /**
+     * Creates new instance.
+     * @class SuperTask
+     * 
+     * @example
+     * var SuperTask = require('supertask');
+     * var TaskManager = new SuperTask();
+     * 
+     * @returns {Instance} Returns a new instance of the module.
+     */
+    constructor(size) {
+        super(size);
+    }
     /**
     * Creates a new local Task. A local task is a task that is not
     * shared by any outside entity and usually performs slightly
@@ -30,6 +42,7 @@ class SuperTask extends SuperTaskInternal {
     * 
     * @param {String} name - A unique name for this Task.
     * @param {Function} taskFunction - The JS function of the Task.
+    * @returns {@link Task}
     */
     addLocal(name, func) {
         return this._addTask(name, func, null, ST_LOCAL_TYPE);
@@ -46,6 +59,7 @@ class SuperTask extends SuperTaskInternal {
      * module.exports to be used as the function. Note that sources are compiled
      * to a function before use with about a 30ms overhead on the first call unless
      * precompile method of task is called beforehand.
+     * @returns {@link Task}
      */
     addForeign(name, source) {
         // VM requires a String source to compile
