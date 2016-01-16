@@ -32,9 +32,10 @@ describe('Basic Test Suite', function(){
     it('should run a task', function(done) {
         TaskManager.do('test', function(error, result) {
             if(error) throw error;
+            var task = TaskManager.get('test');
             expect(result).to.equal('hey');
             expect(exec).to.be.gte(1);
-            averager.prev = this.lastDiff;
+            averager.prev = task.model.lastDiff;
             done();
         });
     });
@@ -54,15 +55,16 @@ describe('Basic Test Suite', function(){
     it('should get a task', function() {
         expect(TaskManager.get('test').model.name).to.equal('test');
     });
-    it.skip('should calculate average execution time', function(done) {
+    it('should calculate average execution time', function(done) {
         TaskManager.do('test', function(error, result) {
             if(error) throw error;
+            var task = TaskManager.get('test');
             expect(result).to.equal('hey');
             expect(exec).to.be.gte(1);
-            averager.current = (averager.prev + this.lastDiff)/2;
-            expect(this.averageExecutionTime).to.be.equal(averager.current);
+            averager.current = (averager.prev + task.model.lastDiff)/2;
+            expect(task.model.averageExecutionTime).to.be.equal(averager.current);
             // Sanity Check
-            expect(this.averageExecutionTime).to.be.lt(1000000000);
+            expect(task.model.averageExecutionTime).to.be.lt(1000000000);
             done();
         });
     });
