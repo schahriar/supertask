@@ -114,7 +114,7 @@ Run a task with the given arguments and context (this)
 | Param | Type | Description |
 | --- | --- | --- |
 | taskName | <code>String</code> | Unique name of the task |
-| context | <code>Object</code> | Passes as (this.property). Note that `call`, `apply`, `name`, `recurse` are reserved properties. |
+| context | <code>Object</code> | Passes as (this.property). Note that `call`, `apply`, `self`, `recurse` are reserved properties. |
 | arguments | <code>Array</code> | An array of arguments that are passed to the Task. |
 | callback | <code>function</code> | The callback that handles the response. Note that the callback parameters are based on what the function calls the callback with but will include `error` as the first parameter as per usual NodeJS async calls. |
 

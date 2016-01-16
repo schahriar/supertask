@@ -126,7 +126,7 @@ class SuperTask extends SuperTaskInternal {
      * 
      * @param {String} taskName - Unique name of the task
      * @param {Object} context - Passes as (this.property). Note that
-     * `call`, `apply`, `name`, `recurse` are reserved properties.
+     * `call`, `apply`, `self`, `recurse` are reserved properties.
      * @param {Array} arguments - An array of arguments that are passed
      * to the Task.
      * @param {Function} callback - The callback that handles the response.
