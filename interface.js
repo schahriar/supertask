@@ -129,7 +129,7 @@ class SuperTask extends SuperTaskInternal {
         }
         
         // Sanitize args
-        args = (Array.isArray(args)) ? args : [];
+        args = (Array.isArray(args)) ? args : [args];
 
         // Compile task if it is in source form
         if (typeof task.func !== 'function') {
