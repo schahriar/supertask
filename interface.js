@@ -120,6 +120,14 @@ class SuperTask extends SuperTaskInternal {
             globals = ContextPermissions(globals || {}, task.access);
         }
         
+        // Make sure we have a context
+        if (!context) context = {};
+        
+        // Override context with enforced methods
+        for (let key in task.context) {
+            context[key] = task.context[key];
+        }
+        
         // Sanitize args
         args = (Array.isArray(args)) ? args : [];
 
