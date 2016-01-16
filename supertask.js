@@ -32,7 +32,7 @@ function noop() { return null; }
 var SuperTask = function ST_INIT(size, strict) {
     this._busy_ = false;
     this.map = new Map();
-    this.queue = new Deque(parseInt(size) || 10000);
+    this.queue = new Deque(parseInt(size, 10) || 10000);
     this.concurrency = 1000;
     this.strict = (!!strict);
 
