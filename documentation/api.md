@@ -170,7 +170,7 @@ Created through [addLocal](#SuperTask+addLocal), [addForeign](#SuperTask+addFore
 * [Task](#Task)
     * [.do](#Task+do)
     * [.permission([permission])](#Task+permission) ⇒ <code>SuperTaskPermissionFlag</code>
-    * [.context([context])](#Task+context) ⇒ <code>Object</code>
+    * [.globals([globals])](#Task+globals) ⇒ <code>Object</code>
     * [.sandbox([sandboxed])](#Task+sandbox) ⇒ <code>Boolean</code>
     * [.call([...arguments], callback)](#Task+call)
     * [.apply(context, arguments, callback)](#Task+apply)
@@ -211,20 +211,20 @@ var SuperTask = require('supertask');var TaskManager = new SuperTask();TaskMan
 
 -
 
-<a name="Task+context"></a>
-### task.context([context]) ⇒ <code>Object</code>
-Gets/Sets context of the Task. Context is not the same asa local function context (this). This context is the VM'scontext such as globals. Check out NodeJS's VM core modulefor more info.
+<a name="Task+globals"></a>
+### task.globals([globals]) ⇒ <code>Object</code>
+Gets/Sets global variables available to a the Task.
 
 **Kind**: instance method of <code>[Task](#Task)</code>  
-**Returns**: <code>Object</code> - context  
+**Returns**: <code>Object</code> - globals  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [context] | <code>Object</code> | Context of the Task. |
+| [globals] | <code>Object</code> | Globals of the Task. |
 
 **Example**  
 ```js
-var SuperTask = require('supertask');var TaskManager = new SuperTask();TaskManager.addLocal('ctask', function(callback) { callback(null, this.test); }, function(error, task) {     task.context({ test: 'yes' });     TaskManager.do('ctask', function(error, r1){         console.log(r1);         // Output: yes     })});
+var SuperTask = require('supertask');var TaskManager = new SuperTask();TaskManager.addLocal('ctask', function(callback) { callback(null, this.test); }, function(error, task) {     task.globals({ test: 'yes' });     TaskManager.do('ctask', function(error, r1){         console.log(r1);         // Output: yes     })});
 ```
 
 -
@@ -259,7 +259,7 @@ An internal replacement for [do](#SuperTask+do) function.
 
 <a name="Task+apply"></a>
 ### task.apply(context, arguments, callback)
-An extension to [do](#SuperTask+do) function. Enables passingof context as the first argument and call arguments as an array
+An extension to [do](#SuperTask+do) function. Enables passingof call context (this) as the first argument followed by thecall arguments as an array
 
 **Kind**: instance method of <code>[Task](#Task)</code>  
 

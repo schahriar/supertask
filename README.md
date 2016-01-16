@@ -41,7 +41,7 @@ var source = "module.exports = function power(n, x, callback) { callback(null, M
 var task = TaskManager.addForeign('foreignPow', source);
 ```
 
-Change permissions and context of a task and precompilation
+Change permissions and globals of a task and precompilation
 ```javascript
 var Supertask = require('supertask');
 var TaskManager = new Supertask();
@@ -49,10 +49,10 @@ var TaskManager = new Supertask();
 // Source from network I/O etc.
 var source = "module.exports = function cmtp(y, callback) { callback(null, y * gx); }";
 
-var task = TaskManager.addForeign('contextMultiply', source);
+var task = TaskManager.addForeign('globalMultiply', source);
 task.permissions(Supertask.ST_MINIMAL); // Allows limited require, Buffer, etc.
 // gx will be available globally
-task.context({ gx: 2 });
+task.globals({ gx: 2 });
 // Compile Task through VM
 task.precompile();
 // Call Task (similar to TaskManager.do)
@@ -64,7 +64,7 @@ task.do(8, function(error, result) {
 ```
 
 ## What's the difference between a Task and a Function?
-Functions can't be shared within Clusters or networks in JS unlike many other types that can be trasferred in form of JSON. That's because of **context** and **closures**. If we could ignore closures and instead stick to contexts we can pass the source of these functions across a network and re-compile then through the VM Core Module provided with NodeJS from source. In fact `require` itself uses VM to process modules. *Moreover Functions can be converted to Tasks but without [closures](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures). Although you can provide global variable access through Task#context which can be useful at times.*
+Functions can't be shared within Clusters or networks in JS unlike many other types that can be trasferred in form of JSON. That's because of **globals** and **closures**. If we could ignore closures and instead stick to globals we can pass the source of these functions across a network and re-compile then through the VM Core Module provided with NodeJS from source. In fact `require` itself uses VM to process modules. *Moreover Functions can be converted to Tasks but without [closures](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures). Although you can provide global variable access through Task#globals which can be useful at times.*
 
 ## API
 [API documentation is available here.](./documentation/api.md)

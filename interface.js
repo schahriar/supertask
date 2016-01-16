@@ -85,11 +85,17 @@ class SuperTask extends SuperTaskInternal {
     do() {
         let args = Array.prototype.slice.call(arguments);
         let name = args.shift();
-        let callback = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
+        let callback = noop;
+        
         // Check for callback
-        if (typeof callback !== 'function') {
-            callback = noop;
+        if (typeof args[args.length - 1] === 'function') {
+            callback = args.pop();
         }
+        
+        this.apply(name, null, args, callback);
+    }
+    
+    apply(name, context, args, callback) {
         
         // Check for mapped task
         if (!this.map.has(name)) {
@@ -104,11 +110,11 @@ class SuperTask extends SuperTaskInternal {
             return callback(new Error('Task not found!'));
         }
         
-        // Set Context to task's default
-        let context = task.defaultContext;
+        // Set Globals to task's default
+        let globals = task.globals;
         // Combine Permissions Context (SLOWS DOWN EXECUTION)
         if ((task.access) && (task.access !== ST_NONE)) {
-            context = ContextPermissions(context || {}, task.access);
+            globals = ContextPermissions(globals || {}, task.access);
         }
         
         // Sanitize args
@@ -117,7 +123,7 @@ class SuperTask extends SuperTaskInternal {
         // Compile task if it is in source form
         if (typeof task.func !== 'function') {
             try {
-                let result = this._compile(task, context);
+                let result = this._compile(task, globals);
                 if (typeof result === 'function') task.func = result;
                 else return callback(new Error("Unknown error occurred. Failed to compile and execution was halted."));
             } catch (e) {
@@ -127,6 +133,7 @@ class SuperTask extends SuperTaskInternal {
         // Push to Queue
         this._push({
             name: name,
+            globals: globals,
             context: context,
             args: args,
             task: task,

@@ -44,10 +44,9 @@ describe('Basic Test Suite', function(){
             exec++;
             callback(null, this.test);
         });
-        task.context({ test: 'advanced' });
         task.permission(SuperTask.ST_NONE);
         expect(task.model).to.have.property('shared', false);
-        TaskManager.do('testadvanced', function(error, test){
+        TaskManager.apply('testadvanced', { test: 'advanced' }, [], function(error, test){
             expect(test).to.be.equal('advanced');
             done();
         });
@@ -124,7 +123,7 @@ describe('Foreign Task Suite', function(){
             callback();
         });
         var called = false;
-        task.context({ console: { log: function(m){
+        task.globals({ console: { log: function(m){
             if(called) return;
             expect(m).to.equal("hey");
             called = true;
@@ -137,7 +136,7 @@ describe('Foreign Task Suite', function(){
             console.log('hey');
             callback();
         });
-        task.context({
+        task.globals({
             console: {
                 log: function(m){
                     expect(m).to.equal("hey");
@@ -158,7 +157,7 @@ describe('Queue Suite', function(){
     it('should queue tasks in parallel', function() {
         // Queue 5 times
         var i = 0;
-        for(i=0; i<5; i++) {
+        for(i=0; i < 5; i++) {
             TaskManager.do('foreign', 'HelloWorld');
         }
         expect(TaskManager.queue.length).to.be.gte(5);
@@ -210,13 +209,13 @@ describe('Task Model Suite', function() {
         task.permission(SuperTask.ST_RESTRICTED);
         expect(task.permission()).to.be.equal(SuperTask.ST_RESTRICTED);
     });
-    it('should set/unset context', function() {
+    it('should set/unset globals', function() {
         var task = TaskManager.addLocal('localMFuncC1', pow2);
         var m = { test: true, a: 4 };
         expect(task).to.have.property('model');
-        expect(task.context()).to.be.eql({});
-        task.context(m);
-        expect(task.context()).to.be.eql(m);
+        expect(task.globals()).to.be.eql({});
+        task.globals(m);
+        expect(task.globals()).to.be.eql(m);
     });
     it('should set/unset sandbox', function() {
         var task = TaskManager.addLocal('localMFuncS', pow2);
@@ -264,9 +263,9 @@ describe('Task Model Suite', function() {
     });
 });
 
-describe('Permission & Context Suite', function(){
+describe('Permission & Globals Suite', function(){
     /* Add More Tests */
-    it('should contain the context with respect to permissions', function(done) {
+    it('should contain the globals with respect to permissions', function(done) {
         var task = TaskManager.addForeign('foreignT3', ftasks.t3);
         task.permission(SuperTask.ST_UNRESTRICTED);
         expect(task.model).to.have.property('sandboxed');
@@ -276,7 +275,7 @@ describe('Permission & Context Suite', function(){
             done();
         });
     });
-    it('should restrict the context', function(done) {
+    it('should restrict the globals', function(done) {
         var task = TaskManager.addForeign('foreignT3C', ftasks.t3);
         task.permission(SuperTask.ST_RESTRICTED);
         expect(task.model).to.have.property('sandboxed', true);
