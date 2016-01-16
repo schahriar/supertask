@@ -83,6 +83,12 @@ class SuperTask extends SuperTaskInternal {
         }
 
         let task = this.map.get(name);
+        
+        // Check for mapped task
+        if (!task) {
+            return callback(new Error('Task not found!'));
+        }
+        
         // Set Context to task's default
         let context = task.defaultContext;
         // Combine Permissions Context (SLOWS DOWN EXECUTION)
