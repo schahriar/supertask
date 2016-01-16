@@ -30,12 +30,10 @@ function noop() { return null; }
  * @returns {Instance} Returns a new instance of the module.
  */
 var SuperTask = function ST_INIT(size, strict) {
-    this._batch = [];
-    this._paused = true;
-    this._busy = false;
-    this._timeout = 1000;
+    this._busy_ = false;
     this.map = new Map();
     this.queue = new Deque(parseInt(size) || 10000);
+    this.concurrency = 1000;
     this.strict = (!!strict);
 
     eventEmmiter.call(this);
@@ -48,45 +46,61 @@ SuperTask.prototype._wrapTask = TaskModel.wrap;
 
 SuperTask.prototype._extendContextFromPermissions = ContextPermissions;
 
-SuperTask.prototype._next = function ST__QUEUE_NEXT() {
+SuperTask.prototype._next_ = function ST__QUEUE_NEXT() {
+    // Allow _next_ to be called
+    this._busy_ = false;
+    
     /* At this point the source is fully compiled
     /* to a function or a function is resupplied
     /* from cache to be executed. Here we transfer
     /* the given function (task.func) to the queue
     /* after attaching the pre tracker */
     
-    // Get a task
-    var task = this.queue.shift();
+    // Do a batch
+    for (var i = 0; i < Math.min(this.queue.length, this.concurrency); i++) {
+        // Get a task
+        var task = this.queue.shift();
 
-    // Call preTracker
-    task.pre();
-    // Push Callback to args
-    task.args.push(task.callback);
-    // If task is shared call handler
-    if (task.shared && task.handler) {
-        // Assign task name to argument[0] followed by context
-        task.args.unshift(task.context);
-        task.args.unshift(task.name);
-        task.handler.apply(null, task.args);
-    } else {
-        // Call local/remote Function with context & args
-        if (task.sandboxed) {
-            try {
-                task.func.apply(task.context, task.args);
-            } catch (error) {
-                task.callback(error);
-            }
+        // Call preTracker
+        task.pre();
+        // Push Callback to args
+        task.args.push(task.callback);
+        // If task is shared call handler
+        if (task.shared && task.handler) {
+            // Assign task name to argument[0] followed by context
+            task.args.unshift(task.context);
+            task.args.unshift(task.name);
+            task.handler.apply(null, task.args);
         } else {
-            task.func.apply(task.context, task.args);
+            // Call local/remote Function with context & args
+            if (task.sandboxed) {
+                try {
+                    task.func.apply(task.context, task.args);
+                } catch (error) {
+                    task.callback(error);
+                }
+            } else {
+                task.func.apply(task.context, task.args);
+            }
         }
+    }
+    
+    // Keep executing until Queue is empty
+    if (this.queue.length > 0) {
+        // Do after I/O & Tasks are cleared
+        setImmediate(() => { this._next_(); });
     }
 };
 
 SuperTask.prototype._push_ = function ST__QUEUE_ADD(taskObject) {
     this.queue.push(taskObject);
-    setImmediate(() => {
-        this._next();
-    });
+    // Batch Queue items into one call
+    if (!this._busy_) {
+        this._busy_ = true;
+        setImmediate(() => {
+            this._next_();
+        });
+    }
 };
 
 SuperTask.prototype._addTask = function ST__ADD_TASK(name, func, handler, type, callback) {
@@ -289,7 +303,7 @@ SuperTask.prototype.do = function ST_DO() {
     //
 
     // Compile task if it is in source form
-    if (typeof task.func !== 'function') {
+    if (typeof Task.func !== 'function') {
         var result = this._compile(task, context);
         if (typeof result === 'function') Task.func = result;
         else if (result === true) return callback();
