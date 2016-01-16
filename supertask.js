@@ -1,22 +1,22 @@
 "use strict";
 
 /// Required Core Modules
-var vm = require('vm');
-var eventEmmiter = require('events').EventEmitter;
+const vm = require('vm');
+const eventEmmiter = require('events').EventEmitter;
 ///
 /// External Modules
-var Deque = require('double-ended-queue');
-var defaultsDeep = require('lodash.defaultsdeep');
+const Deque = require('double-ended-queue');
+const defaultsDeep = require('lodash.defaultsdeep');
 ///
 /// Internal Modules
-var ContextPermissions = require('./lib/ContextPermissions');
-var TaskObject = require('./lib/TaskObject');
+const ContextPermissions = require('./lib/ContextPermissions');
+const TaskObject = require('./lib/TaskObject');
 ///
 /// Predefined Types
 // TYPES
-var ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
+const ST_LOCAL_TYPE = 0, ST_SHARED_TYPE = 1, ST_FOREIGN_TYPE = 2;
 // PERMISSIONS
-var ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
+const ST_NONE = 0, ST_RESTRICTED = 1, ST_MINIMAL = 2, ST_UNRESTRICTED = 3;
 ///
 // No Operation function
 function noop() { return null; }
@@ -54,9 +54,9 @@ class SuperTask extends eventEmmiter {
         /* after attaching the pre tracker */
         
         // Do a batch
-        for (var i = 0; i < Math.min(this.queue.length, this.concurrency); i++) {
+        for (let i = 0; i < Math.min(this.queue.length, this.concurrency); i++) {
             // Get a job
-            var job = this.queue.shift();
+            let job = this.queue.shift();
 
             // Assign lastStarted
             job.task.lastStarted = process.hrtime();
@@ -109,7 +109,7 @@ class SuperTask extends eventEmmiter {
         
         // Add ST_DO function to the back with current context
         // & Create task
-        var task = TaskObject.create(this, name, func, handler, type);
+        let task = TaskObject.create(this, name, func, handler, type);
         // Add Task's model to Map
         this.map.set(name, task.model);
 
@@ -204,9 +204,9 @@ class SuperTask extends eventEmmiter {
      * per usual NodeJS async calls.
      */
     do() {
-        var args = Array.prototype.slice.call(arguments);
-        var name = args.shift();
-        var callback = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
+        let args = Array.prototype.slice.call(arguments);
+        let name = args.shift();
+        let callback = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
         // Check for callback
         if (typeof callback !== 'function') {
             callback = noop;
@@ -218,9 +218,9 @@ class SuperTask extends eventEmmiter {
             return;
         }
 
-        var task = this.map.get(name);
+        let task = this.map.get(name);
         // Set Context to task's default
-        var context = task.defaultContext;
+        let context = task.defaultContext;
         // Combine Permissions Context (SLOWS DOWN EXECUTION)
         if ((task.access) && (task.access !== ST_NONE)) {
             context = ContextPermissions(context || {}, task.access);
@@ -232,7 +232,7 @@ class SuperTask extends eventEmmiter {
         // Compile task if it is in source form
         if (typeof task.func !== 'function') {
             try {
-                var result = this._compile(task, context);
+                let result = this._compile(task, context);
                 if (typeof result === 'function') task.func = result;
                 else if (result === true) return callback();
                 else if (typeof result === 'object') return callback(result);
