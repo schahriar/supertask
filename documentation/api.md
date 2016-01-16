@@ -18,6 +18,7 @@
         * [.addLocal(name, taskFunction)](#SuperTask+addLocal) ⇒
         * [.addForeign(name, taskFunction)](#SuperTask+addForeign) ⇒
         * [.do(taskName, ...arguments, callback)](#SuperTask+do)
+        * [.apply(taskName, context, arguments, callback)](#SuperTask+apply)
         * [.remove(name)](#SuperTask+remove) ⇒ <code>Boolean</code>
         * [.has(name)](#SuperTask+has) ⇒ <code>Boolean</code>
         * [.get(name)](#SuperTask+get) ⇒ <code>Object</code>
@@ -82,6 +83,22 @@ Run a task with the given arguments
 | --- | --- | --- |
 | taskName | <code>String</code> | Unique name of the task |
 | ...arguments | <code>\*</code> | Arguments that are passed to the Task. You can call this function with any number of arguments so long as the last argument is the callback. |
+| callback | <code>function</code> | The callback that handles the response. Note that the callback parameters are based on what the function calls the callback with but will include `error` as the first parameter as per usual NodeJS async calls. |
+
+
+-
+
+<a name="SuperTask+apply"></a>
+### superTask.apply(taskName, context, arguments, callback)
+Run a task with the given arguments and context (this)
+
+**Kind**: instance method of <code>[SuperTask](#SuperTask)</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| taskName | <code>String</code> | Unique name of the task |
+| context | <code>Object</code> | Passes as (this.property). Note that `call`, `apply`, `name`, `recurse` are reserved properties. |
+| arguments | <code>Array</code> | An array of arguments that are passed to the Task. |
 | callback | <code>function</code> | The callback that handles the response. Note that the callback parameters are based on what the function calls the callback with but will include `error` as the first parameter as per usual NodeJS async calls. |
 
 
@@ -265,7 +282,7 @@ An extension to [do](#SuperTask+do) function. Enables passingof call context (t
 
 | Param | Type | Description |
 | --- | --- | --- |
-| context | <code>Object</code> | Context of the Task. |
+| context | <code>Object</code> | Context of the Task (this). |
 | arguments | <code>Array</code> | An array of arguments. |
 | callback | <code>function</code> |  |
 

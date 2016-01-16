@@ -98,6 +98,19 @@ class SuperTask extends SuperTaskInternal {
         this.apply(name, null, args, callback);
     }
     
+    /**
+     * Run a task with the given arguments and context (this)
+     * 
+     * @param {String} taskName - Unique name of the task
+     * @param {Object} context - Passes as (this.property). Note that
+     * `call`, `apply`, `name`, `recurse` are reserved properties.
+     * @param {Array} arguments - An array of arguments that are passed
+     * to the Task.
+     * @param {Function} callback - The callback that handles the response.
+     * Note that the callback parameters are based on what the function calls
+     * the callback with but will include `error` as the first parameter as
+     * per usual NodeJS async calls.
+     */
     apply(name, context, args, callback) {
         
         // Check for mapped task
