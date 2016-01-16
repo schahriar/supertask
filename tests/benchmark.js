@@ -191,7 +191,7 @@ var SYNC_BENCHER = function () {
     };
 };
 
-var SuperTask = require('../supertask');
+var SuperTask = require('../interface');
 var HybridSort = require('../lib/HybridSort');
 var TaskManager;
 var BenchmarkArray = [];

@@ -3,7 +3,7 @@ var async = require("async");
 var expect = chai.expect;
 var inspect = require("util").inspect;
 
-var SuperTask = require('../supertask');
+var SuperTask = require('../interface');
 var TaskManager;
 var exec = 0;
 var averager = { prev: 0, current: 0 };

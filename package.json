@@ -2,7 +2,7 @@
   "name": "supertask",
   "version": "2.0.0",
   "description": "A task & queue environment ideal for distributed computing and execution",
-  "main": "supertask.js",
+  "main": "interface.js",
   "scripts": {
     "test": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec tests/main.js",
     "posttest": "codeclimate-test-reporter < coverage/lcov.info",
