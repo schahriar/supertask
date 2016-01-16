@@ -1,4 +1,5 @@
 var chai = require("chai");
+var async = require("async");
 var expect = chai.expect;
 var inspect = require("util").inspect;
 
@@ -201,10 +202,10 @@ describe('Foreign Task Suite', function(){
     });
 });
 
-describe('Queue & Cargo Suite', function(){
+describe('Queue Suite', function(){
     it('should queue tasks', function() {
         TaskManager.do('foreign', 'HelloWorld');
-        expect(TaskManager.cargo.length()).to.be.gte(1);
+        expect(TaskManager.queue.length).to.be.gte(1);
     });
     it('should queue tasks in parallel', function() {
         // Queue 5 times
@@ -212,63 +213,36 @@ describe('Queue & Cargo Suite', function(){
         for(i=0; i<5; i++) {
             TaskManager.do('foreign', 'HelloWorld');
         }
-        expect(TaskManager.cargo.length()).to.be.gte(5);
+        expect(TaskManager.queue.length).to.be.gte(5);
     });
     it('should handle large parallel tasks', function(done) {
         this.timeout(20000);
-        // Set max parallel to 100k
-        TaskManager.cargo.payload = 5000;
-        // Queue 100000 times
+        var parallelExecutionArray = [];
         var i = 0;
-        for(i=0; i<100000; i++) {
-            TaskManager.do('foreign', 'HelloWorld');
+        this.concurrency = 10000;
+        for(i=0; i < 100000; i++) {
+            parallelExecutionArray.push(function(cb) {
+                TaskManager.do('foreign', 'HelloWorld', cb);
+            });
         }
-        expect(TaskManager.cargo.length()).to.be.gte(100000);
-        TaskManager.cargo.drain = function(){
+        // Queue 100000 times
+        async.parallel(parallelExecutionArray, function() {
+            expect(TaskManager.queue.length).to.be.lte(10);
             done();
-            // Reset
-            TaskManager.cargo.drain = noop;
-        };
+        });
+        expect(TaskManager.queue.length).to.be.gte(100000);
     });
-    it('should respect maximum parallel execution limit', function(done) {
-        TaskManager.cargo.payload = 10;
-        var saturated = false;
-        TaskManager.cargo.saturated = function(){
-            saturated = true;
-        };
+    it('should respect maximum concurrency limit', function(done) {
+        TaskManager.concurrency = 10;
         // Queue 30 times
         var i = 0;
-        for(i=0; i<30; i++) {
+        for(i=0; i < 30; i++) {
             TaskManager.do('foreign', 'HelloWorld');
         }
-        expect(saturated).to.be.equal(true);
-        var c = 0;
-        TaskManager.cargo.drain = function(){
+        expect(TaskManager.queue.length).to.be.gte(30);
+        setImmediate(function() {
+            expect(TaskManager.queue.length).to.be.gte(20);
             done();
-            // Reset
-            TaskManager.cargo.drain = noop;
-        };
-    });
-    it('should free cargo after set timeout', function(done) {
-        // Increase test timeout
-        this.timeout(5000);
-        // Set timeout
-        TaskManager.timeout(100);
-        expect(TaskManager.timeout()).to.be.equal(100);
-        TaskManager.addForeign('foreignDelayed', ftasks.t4delayed, function(error, task) {
-            if(error) throw error;
-            task.permission(SuperTask.ST_MINIMAL);
-            // Clog the cargo
-            TaskManager.cargo.payload = 10;
-            for(var i=0; i<10; i++) {
-                TaskManager.do('foreignDelayed');
-            }
-            setImmediate(function(){
-                TaskManager.do('foreignFunc', function(){
-                    done();
-                });
-                TaskManager.timeout(1000);
-            });
         });
     });
 });
