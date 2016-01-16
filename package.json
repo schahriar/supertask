@@ -37,7 +37,6 @@
     "mocha": "^2.3.4"
   },
   "dependencies": {
-    "double-ended-queue": "^0.9.7",
-    "lodash.defaultsdeep": "^3.10.0"
+    "double-ended-queue": "^0.9.7"
   }
 }
