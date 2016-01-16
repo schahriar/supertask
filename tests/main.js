@@ -317,4 +317,32 @@ describe('Recursion & Call Methods', function(){
             done();
         });
     });
+    it('should be capable of calling other tasks', function(done) {
+        var funcStr = "module.exports = " +
+        "function(callback){" +
+           "this.call('selfAware2', callback);" +
+        "}";
+        var task = TaskManager.addForeign('deepCalls', funcStr);
+        task.permission(SuperTask.ST_UNRESTRICTED);
+        task.do(function(error, num, text) {
+            expect(error).to.be.equal(null);
+            expect(num).to.be.equal(2);
+            expect(text).to.be.equal('hello');
+            done();
+        });
+    });
+    it('should be capable of deep applying', function(done) {
+        var funcStr = "module.exports = " +
+        "function(callback){" +
+           "this.apply('selfAware2', null, ['test->this'], callback);" +
+        "}";
+        var task = TaskManager.addForeign('deepApply', funcStr);
+        task.permission(SuperTask.ST_UNRESTRICTED);
+        task.do(function(error, num, text) {
+            expect(error).to.be.equal(null);
+            expect(num).to.be.equal(2);
+            expect(text).to.be.equal('test->this');
+            done();
+        });
+    });
 });
