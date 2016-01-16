@@ -29,3 +29,5 @@ node_modules
 # Ignore Coverage Report
 coverage.html
 .vscode/settings.json
+jsconfig.json
+*.jshintrc
