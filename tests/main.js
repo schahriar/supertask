@@ -199,7 +199,7 @@ describe('Queue Suite', function(){
         expect(TaskManager.queue.length).to.be.gte(5);
     });
     it('should handle large parallel tasks', function(done) {
-        this.timeout(20000);
+        this.timeout(60000);
         var parallelExecutionArray = [];
         var i = 0;
         this.concurrency = 10000;
