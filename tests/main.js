@@ -285,3 +285,36 @@ describe('Permission & Globals Suite', function(){
         });
     });
 });
+
+describe('Recursion & Call Methods', function(){
+    it('should provide call methods as a part of context', function(done) {
+        var funcStr = "module.exports = " +
+        "function(callback){" +
+           "if (typeof this.recurse !== 'function') return callback(new Error('no recurse')); " +
+           "return callback(null, 'all good');" +
+        "}";
+        var task = TaskManager.addForeign('selfAware1', funcStr); 
+        task.do(function(error, result) {
+            expect(error).to.be.equal(null);
+            expect(result).to.be.equal('all good');
+            done();
+        });
+    });
+    it('should be capable of recursing', function(done) {
+        var funcStr = "module.exports = " +
+        "function(){" +
+           "var args = Array.prototype.slice.call(arguments);" +
+           "var callback = args.pop();" +
+           "if (args.length >= 1) { return callback(null, 2, args.shift()) }; " +
+           "this.recurse('hello', callback);" +
+        "}";
+        var task = TaskManager.addForeign('selfAware2', funcStr);
+        task.permission(SuperTask.ST_UNRESTRICTED);
+        task.do(function(error, num, text) {
+            expect(error).to.be.equal(null);
+            expect(num).to.be.equal(2);
+            expect(text).to.be.equal('hello');
+            done();
+        });
+    });
+});
