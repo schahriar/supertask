@@ -73,6 +73,7 @@ class SuperTask extends SuperTaskInternal {
     /**
      * Run a task with the given arguments
      * 
+     * @param {String} taskName - Unique name of the task
      * @param {...*} arguments - Arguments that are passed to the Task.
      * You can call this function with any number of arguments so long
      * as the last argument is the callback.

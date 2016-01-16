@@ -17,7 +17,7 @@
     * _instance_
         * [.addLocal(name, taskFunction)](#SuperTask+addLocal) ⇒
         * [.addForeign(name, taskFunction)](#SuperTask+addForeign) ⇒
-        * [.do(...arguments, callback)](#SuperTask+do)
+        * [.do(taskName, ...arguments, callback)](#SuperTask+do)
         * [.remove(name)](#SuperTask+remove) ⇒ <code>Boolean</code>
         * [.has(name)](#SuperTask+has) ⇒ <code>Boolean</code>
         * [.get(name)](#SuperTask+get) ⇒ <code>Object</code>
@@ -73,13 +73,14 @@ Creates a new foreign Task. A local task is a task that is notshared by any out
 -
 
 <a name="SuperTask+do"></a>
-### superTask.do(...arguments, callback)
+### superTask.do(taskName, ...arguments, callback)
 Run a task with the given arguments
 
 **Kind**: instance method of <code>[SuperTask](#SuperTask)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
+| taskName | <code>String</code> | Unique name of the task |
 | ...arguments | <code>\*</code> | Arguments that are passed to the Task. You can call this function with any number of arguments so long as the last argument is the callback. |
 | callback | <code>function</code> | The callback that handles the response. Note that the callback parameters are based on what the function calls the callback with but will include `error` as the first parameter as per usual NodeJS async calls. |
 
