@@ -83,7 +83,10 @@ class SuperTask extends SuperTaskInternal {
      * per usual NodeJS async calls.
      */
     do() {
-        let args = Array.prototype.slice.call(arguments);
+        let args = new Array(arguments.length);
+        for(let i = 0; i < args.length; ++i) {
+            args[i] = arguments[i];
+        }
         let name = args.shift();
         let callback = noop;
         
