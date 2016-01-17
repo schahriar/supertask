@@ -18,6 +18,10 @@
     "supertask",
     "queue",
     "task",
+    "performance",
+    "cluster",
+    "parallel",
+    "parallelized",
     "distributed"
   ],
   "author": "Schahriar SaffarShargh <info@schahriar.com>",
