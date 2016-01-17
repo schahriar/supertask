@@ -79,9 +79,9 @@ module.exports = function(callback) {
  
  ----
  
- ## How can I Cluster/Parallelize/Distribute these tasks?
+## How can I Cluster/Parallelize/Distribute these tasks?
  You should remember that `SuperTask` is a base module. It provides the concept and implementation of tasks with a super fast queue, recurssion, deep calls, etc. communication, creation and management part of the process is left to be developed on top of this module. That being said the building blocks that are shipped with this module should be enough to get you started.
  
- # Footnotes
+# Footnotes
  - `*Tasks shouldn't throw (unless sandboxed): ` Tasks can be executed in different environments and under different permissions (or may be introduced from outside sources). A good practice is to pass your error directly to the callback but if that isn't possible make sure that your task is created as sandboxed (Foreign tasks are automatically sandboxed) that way you may throw and your error will be caught within a try/catch block.
  - `Tasks are asynchronous. You can't return values: ` Return values of all tasks is **ignored**. Your tasks may be synchronous but be tasks are designed to be fully async and therefore return values are not considered to be final results. Be sure to call the last argument in `arguments` as your `callback` with `error` as the first parameter followed by any number of parameters.
