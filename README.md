@@ -66,7 +66,11 @@ task.do(8, function(error, result) {
 ## What's the difference between a Task and a Function?
 Functions can't be shared within Clusters or networks in JS unlike many other types that can be trasferred in form of JSON. That's because of **globals** and **closures**. If we could ignore closures and instead stick to globals we can pass the source of these functions across a network and re-compile then through the VM Core Module provided with NodeJS from source. In fact `require` itself uses VM to process modules. *Moreover Functions can be converted to Tasks but without [closures](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures). Although you can provide global variable access through Task#globals which can be useful at times.*
 
-## API
+\**Above is an excerpt from **Understanding Tasks*** You can read the [entire guide here.](./documentation/Understanding_Tasks.md)
+
+## API & Documentation
+[Read more about tasks here.](./documentation/Understanding_Tasks.md)
+
 [API documentation is available here.](./documentation/api.md)
 
 ## License
